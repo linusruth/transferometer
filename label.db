@@ -1,0 +1,17 @@
+Label {
+  mac = '1b:3f:2c:8d:22:13',
+  name = 'Server-02',
+  medium = 'wired'
+}
+
+Label {
+  mac = '37:11:11:23:f1:2b',
+  name = 'CAD Workstation',
+  medium = 'wired'
+}
+
+Label {
+  mac = 'c0:44:25:3d:3a:00',
+  name = 'Laptop',
+  medium = 'wireless'
+}
