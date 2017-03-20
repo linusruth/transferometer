@@ -11,7 +11,7 @@ function Label (table)
   if table.mac then
     label[table.mac] = {
       name = table.name,
-      medium = table.medium
+      tags = table.tags
     }
   end
 end
