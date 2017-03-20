@@ -2,8 +2,8 @@ Label {
   mac = '1b:3f:2c:8d:22:13',
   name = 'Server-02',
   tags = {
-    'ari' = true,
-    'wired' = true
+    ['ari'] = true,
+    ['wired'] = true
   }
 }
 
@@ -11,8 +11,8 @@ Label {
   mac = '37:11:11:23:f1:2b',
   name = 'CAD Workstation',
   tags = {
-    'sonja' = true,
-    'wired' = true
+    ['sonja'] = true,
+    ['wired'] = true
   }
 }
 
@@ -20,7 +20,7 @@ Label {
   mac = 'c0:44:25:3d:3a:00',
   name = 'Laptop',
   tags = {
-    'shakir' = true,
-    'wireless' = true
+    ['shakir'] = true,
+    ['wireless'] = true
   }
 }
