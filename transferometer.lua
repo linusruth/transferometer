@@ -34,9 +34,53 @@ end
 
 local function command_result (command)
   local file = assert(io.popen(command, 'r'))
-  local output = file:read('*a')
+  local result = file:read('*a')
   file:close()
-  return output
+  return result
+end
+
+-- Create an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
+-- (ex. INPUT) to contain rules for logging host data throughput.
+local function create_accounting_chain (built_in_chain)
+  os.execute('iptables -t mangle -N TRANSFEROMETER_' .. built_in_chain ..
+             ' 1>/dev/null 2>&1')
+end
+
+-- Delete an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
+-- (ex. INPUT) including any rules it may contain.
+local function delete_accounting_chain (built_in_chain)
+  os.execute('iptables -t mangle -F TRANSFEROMETER_' .. built_in_chain ..
+             ' 1>/dev/null 2>&1')
+  os.execute('iptables -t mangle -X TRANSFEROMETER_' .. built_in_chain ..
+             ' 1>/dev/null 2>&1')
+end
+
+-- Add the rule necessary to divert packets from a built-in chain
+-- (ex. INPUT) to a corresponding accounting chain (ex. TRANSFEROMETER_INPUT).
+-- It must be evaluated first, so it will be placed at the head of the chain.
+local function add_diversion_rule_to_chain (built_in_chain)
+  os.execute('iptables -t mangle -I ' .. built_in_chain ..
+             ' -j TRANSFEROMETER_' .. built_in_chain .. ' 1>/dev/null 2>&1')
+end
+
+-- Remove the rule necessary to divert packets from a built-in chain
+-- (ex. INPUT) to a corresponding accounting chain (ex. TRANSFEROMETER_INPUT),
+-- including any duplicates of the rule which may exist.
+local function remove_diversion_rule_from_chain (built_in_chain)
+  local command = 'iptables -t mangle -D ' .. built_in_chain ..
+                  ' -j TRANSFEROMETER_' .. built_in_chain .. ' 2>&1'
+  repeat until string.match(command_result(command), "%S+")
+end
+
+-- Verifies that the rule necessary to divert packets from a built-in chain
+-- (ex. INPUT) to a corresponding accounting chain (ex. TRANSFEROMETER_INPUT),
+-- exists at the head of the chain, and is unique within the chain.
+local function verify_diversion_rule_in_chain (built_in_chain)
+  local command = 'iptables -t mangle -L ' .. built_in_chain .. ' 1 2>&1'
+  local accounting_chain = 'TRANSFEROMETER_' .. built_in_chain
+  if string.match(command_result(command), accounting_chain) then
+    print 'Under construction!'
+  end
 end
 
 print 'MAC Label DB:'
