@@ -86,32 +86,24 @@ end
 
 -- Verifies that the rule necessary to divert packets from a built-in chain
 -- (ex. INPUT) to a corresponding accounting chain (ex. TRANSFEROMETER_INPUT),
--- exists at the head of the built-in chain.  Instances of the diversion rule
--- found at other positions within the chain will be deleted, and a new
--- diversion rule will be inserted at the head if needed.
+-- exists at the head of the built-in chain, and is unique within it.
+-- If either condition is false, then all diversion rules will be deleted
+-- and a new diversion rule will be inserted at the head of the built-in chain.
 local function maintain_diversion_rule (built_in_chain)
   local command = 'iptables -t mangle -n --line-numbers -L ' ..
                   built_in_chain .. ' 2>&1'
   local output = command_result(command)
-
   local accounting_chain = 'TRANSFEROMETER_' .. built_in_chain
-  local rules = {}
 
+  local rules = {}
   for rule_number in string.gmatch(output, "(%d+)%s*" .. accounting_chain) do
     table.insert(rules, rule_number)
   end
 
-  for i = #rules, 2, -1 do
-    local rule_number = table.remove(rules)
-    os.execute('iptables -t mangle -D ' .. built_in_chain ..
-               ' ' .. rule_number .. ' 2>&1')
-  end
-
-  if #rules == 0 then
-    insert_diversion_rule(built_in_chain)
-  elseif rules[1] ~= 1 then
-    os.execute('iptables -t mangle -D ' .. built_in_chain ..
-               ' ' .. table.remove(rules) .. ' 2>&1')
+  if rules[1] == '1' and #rules == 1 then
+    break
+  else
+    delete_diversion_rule(built_in_chain)
     insert_diversion_rule(built_in_chain)
   end
 end
