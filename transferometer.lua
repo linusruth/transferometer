@@ -100,9 +100,7 @@ local function maintain_diversion_rule (built_in_chain)
     table.insert(rules, rule_number)
   end
 
-  if rules[1] == '1' and #rules == 1 then
-    break
-  else
+  if rules[1] ~= '1' or #rules ~= 1 then
     delete_diversion_rule(built_in_chain)
     insert_diversion_rule(built_in_chain)
   end
@@ -142,7 +140,7 @@ local function test ()
   insert_diversion_rule('INPUT')
   insert_diversion_rule('INPUT')
   insert_diversion_rule('INPUT')
-  verify_diversion_rule('INPUT')
+  maintain_diversion_rule('INPUT')
   delete_diversion_rule('INPUT')
   delete_accounting_chain('INPUT')
 end
