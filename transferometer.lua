@@ -42,10 +42,8 @@ end
 local function command_result_array (command)
   local file = assert(io.popen(command, 'r'))
   local result = {}
-  local i = 1
   for line in file:lines() do
-    result[i] = line
-    i = i + 1
+    table.insert(result, line)
   end
   file:close()
   return result
