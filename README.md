@@ -1,4 +1,4 @@
-transferometer
+Transferometer
 ======
 Data transfer accounting package for [LEDE](https://lede-project.org/).
 
@@ -11,8 +11,8 @@ Note: This software depends on the *script-arp* functionality in [Dnsmasq](http:
 To be determined.  (Transferometer is a work in progress.)
 
 ## Development
-1. Follow the [instructions](https://lede-project.org/docs/user-guide/virtualbox-vm) provided by the LEDE team to install [LEDE 17.01.1 x86_64](https://downloads.lede-project.org/releases/17.01.1/targets/x86/64/lede-17.01.1-x86-64-combined-ext4.img.gz) in a [VirtualBox](https://www.virtualbox.org/) VM.  (**Note: There is a flaw in the instructions.**  Please download the *ext4* image referenced above *rather than* the *squashfs* image it suggests.  Otherwise VBoxManage will throw an error during conversion indicating that the disk is "not aligned on a sector boundary".)
-2. Clone this repo locally, then [use SCP to copy files](https://kb.iu.edu/d/agye) to your VM.
+1. Follow the [instructions](https://lede-project.org/docs/user-guide/virtualbox-vm) provided by the LEDE team to install [LEDE 17.01.1 x86_64](https://downloads.lede-project.org/releases/17.01.1/targets/x86/64/lede-17.01.1-x86-64-combined-ext4.img.gz) in a [VirtualBox](https://www.virtualbox.org/) VM.  (**Note: There is a flaw in the instructions.**  Please download the *ext4* image referenced above rather than the *squashfs* image it suggests.  Otherwise VBoxManage will throw an error during conversion indicating that the disk is "not aligned on a sector boundary".)
+2. Clone the Transferometer repo locally, then [use SCP to copy files](https://kb.iu.edu/d/agye) to your VM.
 3. SSH into the VM, reconfigure Dnsmasq:
   * Add the following lines to */etc/dnsmasq.conf*:
 ```bash
