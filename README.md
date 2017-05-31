@@ -5,7 +5,7 @@ Data transfer accounting package for [LEDE](https://lede-project.org/).
 ## Requirements
 * LEDE 17.01.x
 
-Note: This software depends on the *script-arp* functionality in [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) 2.76.  [OpenWRT](https://openwrt.org/) 15.05.1 packages Dnsmasq 2.73, which does not include *script-arp*.  As LEDE is closely related fork of OpenWRT, future versions of OpenWRT will likely be compatibile with Transferometer, provided they include an updated Dnsmasq package.
+Note: This software depends on the *script-arp* functionality in [Dnsmasq 2.76](http://www.thekelleys.org.uk/dnsmasq/CHANGELOG), included in LEDE 17.01.x.  OpenWRT 15.05.x includes Dnsmasq 2.73, which does not provide *script-arp*.  Future versions of OpenWRT will likely be compatibile with Transferometer, provided they include an updated Dnsmasq package.
 
 ## Usage
 To be determined.  (Transferometer is a work in progress.)
