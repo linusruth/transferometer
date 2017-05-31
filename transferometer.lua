@@ -4,8 +4,18 @@
 --
 -- This is free software, licensed under the Apache License, Version 2.0.
 
+local host = {}
 local label = {}
 local transfer = {}
+
+function Host (table)
+  if table.ip then
+    host[table.ip] = {
+      mac = table.mac,
+      keep = false
+    }
+  end
+end
 
 function Label (table)
   if table.mac then
@@ -104,8 +114,48 @@ local function maintain_diversion_rule (built_in_chain)
   end
 end
 
+-- Processes on the router itself (ping, etc.) send packets
+-- via the WAN interface.
+
+-- This will use UCI to read the IP address assigned
+-- to the interface named 'wan', as defined in /etc/config/network.
+-- uci get network.wan.ifname
+
+-- Assuming the physical interface associated with 'wan' is 'eth1',
+-- this will return its MAC address:
+-- cat /sys/class/net/eth1/address
+
+local function insert_interface_rule (built_in_chain)
+  if built_in_chain = 'OUTPUT' then
+    os.execute('iptables -t mangle -o $IF -j RETURN -C RRDIPT_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -o $IF -j RETURN -A RRDIPT_$chain')
+  elseif built_in_chain = 'INPUT' then
+    os.execute('iptables -t mangle -i $IF -j RETURN -C RRDIPT_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -i $IF -j RETURN -A RRDIPT_$chain')
+  end
+end
+
+local function insert_device_rule (built_in_chain)
+  if built_in_chain = 'FORWARD' then
+    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip .. ' -C RRDIPT_FORWARD 2>/dev/null')
+    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip .. ' -A RRDIPT_FORWARD')
+    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip .. ' -C RRDIPT_FORWARD 2>/dev/null')
+    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip .. ' -A RRDIPT_FORWARD')
+  end
+end
+
 local function demo ()
-  print 'MAC Label DB:'
+  print 'Host DB:'
+  local host_db = io.read()
+  if file_exists(host_db) then
+    dofile(host_db)
+  else
+    print 'File not found!'
+    os.exit()
+  end
+
+
+  print 'Label DB:'
   local label_db = io.read()
   if file_exists(label_db) then
     dofile(label_db)
