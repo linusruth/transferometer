@@ -27,7 +27,7 @@ determine_openwrt_architecture() {
   else
     printf "error\n"
     printf "OpenWrt does not support host architecture.\n"
-    dprintf "Supported architectures are: x86_64 i386 i486 i586 i686\n"
+    printf "Supported architectures are: x86_64 i386 i486 i586 i686\n"
     exit 1
   fi
 }
