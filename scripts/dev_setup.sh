@@ -215,7 +215,7 @@ configure_vm_properties() {
     --memory "128" \
     --ioapic "on" \
     --longmode "${LONGMODE}" \
-    --pae "off" \
+    --pae "on" \
     --rtcuseutc "on" 1>/dev/null 2>&1
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
