@@ -9,7 +9,15 @@ OPENWRT_VERSION="17.01.4"
 determine_host_os() {
   printf "Determining host operating system... "
   HOST_OS="$(uname -s)"
-  printf "${HOST_OS}\n"
+
+  if (printf "${HOST_OS}" | grep -q "CYGWIN\|Darwin\|Linux\|MINGW"); then
+    printf "${HOST_OS}\n"
+  else
+    printf "error\n"
+    printf "Host operating system '${HOST_OS}' is not supported.\n"
+    printf "Supported operating systems are: Cygwin Darwin Linux MinGW\n"
+    exit 1
+  fi
 }
 
 determine_host_architecture() {
@@ -17,7 +25,15 @@ determine_host_architecture() {
 
   printf "Determining host architecture... "
   HOST_ARCHITECTURE="$(uname -m)"
-  printf "${HOST_ARCHITECTURE}\n"
+
+  if (printf "${HOST_ARCHITECTURE}" | grep -qw "^i[[:digit:]]86$\|x86_64"); then
+    printf "${HOST_ARCHITECTURE}\n"
+  else
+    printf "error\n"
+    printf "Host architecture '${HOST_ARCHITECTURE}' is not supported.\n"
+    printf "Supported architectures are: i386 i486 i586 i686 x86_64\n"
+    exit 1
+  fi
 }
 
 determine_host_virtualization_extensions() {
@@ -33,12 +49,11 @@ determine_host_virtualization_extensions() {
     HOST_EXTENSIONS="$(printf "${HOST_EXTENSIONS}" | tr "[:upper:]" "[:lower:]")"
   fi
 
-  if test -n "${HOST_EXTENSIONS}"; then
+  if (printf "${HOST_EXTENSIONS}" | grep -qw "true\|false"); then
     printf "${HOST_EXTENSIONS}\n"
   else
     printf "error\n"
-    printf "Script does not support host operating system.\n"
-    printf "Supported operating systems are: Cygwin Darwin Linux MinGW\n"
+    printf "Unable to determine if host CPU has virtualization extensions.\n"
     exit 1
   fi
 }
@@ -47,22 +62,17 @@ determine_openwrt_architecture() {
   determine_host_virtualization_extensions
 
   printf "Determining OpenWrt architecture... "
-  if test "${HOST_ARCHITECTURE}" = "x86_64"; then
-    if test "${HOST_EXTENSIONS}" = "true"; then
-      OPENWRT_ARCHITECTURE="x86-64"
-    else
-      OPENWRT_ARCHITECTURE="x86-generic"
-    fi
-  elif (printf "${HOST_ARCHITECTURE}" | grep -q "^i[[:digit:]]86$"); then
+  if test "${HOST_EXTENSIONS}" = "false"; then
     OPENWRT_ARCHITECTURE="x86-generic"
+  else
+    OPENWRT_ARCHITECTURE="x86-64"
   fi
 
-  if test -n "${OPENWRT_ARCHITECTURE}"; then
+  if (printf "${OPENWRT_ARCHITECTURE}" | grep -qw "x86-generic\|x86-64"); then
     printf "${OPENWRT_ARCHITECTURE}\n"
   else
     printf "error\n"
-    printf "OpenWrt does not support host architecture.\n"
-    printf "Supported architectures are: i386 i486 i586 i686 x86_64\n"
+    printf "Unable to determine OpenWRT architecture.\n"
     exit 1
   fi
 }
@@ -95,7 +105,7 @@ determine_download_utility() {
   SUPPORTED_COMMANDS="curl wget"
   DOWNLOAD_UTILITY="$(which_command "${SUPPORTED_COMMANDS}")"
 
-  if test -n "${DOWNLOAD_UTILITY}"; then
+  if (printf "${DOWNLOAD_UTILITY}" | grep -qw "curl\|wget"); then
     printf "${DOWNLOAD_UTILITY}\n"
   else
     printf "error\n"
@@ -124,7 +134,7 @@ determine_extraction_utility() {
   SUPPORTED_COMMANDS="gunzip gzip"
   EXTRACTION_UTILITY="$(which_command "${SUPPORTED_COMMANDS}")"
 
-  if test -n "${EXTRACTION_UTILITY}"; then
+  if (printf "${EXTRACTION_UTILITY}" | grep -qw "gunzip\|gzip"); then
     printf "${EXTRACTION_UTILITY}\n"
   else
     printf "error\n"
@@ -163,18 +173,17 @@ determine_os_type() {
   convert_firmware_image
 
   printf "Determining virtual machine OS type... "
-  if test "${OPENWRT_ARCHITECTURE}" = "x86-64"; then
+  if test "${OPENWRT_ARCHITECTURE}" = "x86-generic"; then
     OS_TYPE="Linux26"
-  elif test ${OPENWRT_ARCHITECTURE} = "x86-generic"; then
+  elif test ${OPENWRT_ARCHITECTURE} = "x86-64"; then
     OS_TYPE="Linux26_64"
   fi
 
-  if test -n "${OS_TYPE}"; then
-  printf "${OS_TYPE}\n"
+  if (printf "${OS_TYPE}" | grep -qw "Linux26\|Linux26_64"); then
+    printf "${OS_TYPE}\n"
   else
     printf "error\n"
-    printf "VirtualBox does not support guest OS type.\n"
-    printf "Supported OS types are Linux26 and Linux26_64.\n"
+    printf "Unable to determine VirtualBox guest OS type.\n"
     exit 1
   fi
 }
