@@ -6,19 +6,54 @@
 
 OPENWRT_VERSION="17.01.4"
 
+determine_host_os() {
+  printf "Determining host operating system... "
+  HOST_OS="$(uname -s)"
+  printf "${HOST_OS}\n"
+}
+
 determine_host_architecture() {
+  determine_host_os
+
   printf "Determining host architecture... "
   HOST_ARCHITECTURE="$(uname -m)"
   printf "${HOST_ARCHITECTURE}\n"
 }
 
-determine_openwrt_architecture() {
+determine_host_virtualization_extensions() {
   determine_host_architecture
+
+  printf "Determining if host CPU has virtualization extensions... "
+  if test "${HOST_OS}" = "Linux"; then
+    HOST_EXTENSIONS="$(lscpu | grep -qw "svm\|vmx" && printf "true" || printf "false")"
+  elif test "${HOST_OS}" = "Darwin"; then
+    HOST_EXTENSIONS="$(sysctl -a | grep -qw "VMX" && printf "true" || printf "false")"
+  elif (printf "${HOST_OS}" | grep -q "CYGWIN\|MINGW"); then
+    HOST_EXTENSIONS="$(powershell -c "(GWMI Win32_Processor).VirtualizationFirmwareEnabled")"
+    HOST_EXTENSIONS="$(printf "${HOST_EXTENSIONS}" | tr "[:upper:]" "[:lower:]")"
+  fi
+
+  if test -n "${HOST_EXTENSIONS}"; then
+    printf "${HOST_EXTENSIONS}\n"
+  else
+    printf "error\n"
+    printf "Script does not support host operating system.\n"
+    printf "Supported operating systems are: Cygwin Darwin Linux MinGW\n"
+    exit 1
+  fi
+}
+
+determine_openwrt_architecture() {
+  determine_host_virtualization_extensions
 
   printf "Determining OpenWrt architecture... "
   if test "${HOST_ARCHITECTURE}" = "x86_64"; then
-    OPENWRT_ARCHITECTURE="x86-64"
-  elif (printf ${HOST_ARCHITECTURE} | grep -q ^i[[:digit:]]86$); then
+    if test "${HOST_EXTENSIONS}" = "true"; then
+      OPENWRT_ARCHITECTURE="x86-64"
+    else
+      OPENWRT_ARCHITECTURE="x86-generic"
+    fi
+  elif (printf "${HOST_ARCHITECTURE}" | grep -q "^i[[:digit:]]86$"); then
     OPENWRT_ARCHITECTURE="x86-generic"
   fi
 
@@ -27,7 +62,7 @@ determine_openwrt_architecture() {
   else
     printf "error\n"
     printf "OpenWrt does not support host architecture.\n"
-    printf "Supported architectures are: x86_64 i386 i486 i586 i686\n"
+    printf "Supported architectures are: i386 i486 i586 i686 x86_64\n"
     exit 1
   fi
 }
