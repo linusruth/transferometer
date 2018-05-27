@@ -196,10 +196,16 @@ configure_vm_properties() {
   create_vm
 
   printf "Configuring virtual machine properties... "
+  if test "${OPENWRT_ARCHITECTURE}" = "x86-64"; then
+    LONGMODE="on"
+  else
+    LONGMODE="off"
+  fi
+
   VBoxManage modifyvm "${VM_NAME}" \
     --memory "128" \
     --ioapic "on" \
-    --longmode "on" \
+    --longmode "${LONGMODE}" \
     --pae "off" \
     --rtcuseutc "on" 1>/dev/null 2>&1
 
