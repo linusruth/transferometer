@@ -123,7 +123,7 @@ download_firmware_image() {
   if test "${DOWNLOAD_UTILITY}" = "curl"; then
     curl -s -O "${FIRMWARE_URL}"
   elif test "${DOWNLOAD_UTILITY}" = "wget"; then
-    wget "${FIRMWARE_URL}"
+    wget -q "${FIRMWARE_URL}"
   fi
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
