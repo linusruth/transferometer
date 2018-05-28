@@ -14,6 +14,19 @@ exact_match_in_list() {
   printf "${1}" | grep -qw "${2//[[:space:]]/\\\|}"
 }
 
+command_exists() {
+  (test -n "$(command -v ${1})" && return 0) || return 1
+}
+
+which_command() {
+  for COMMAND in ${1}; do
+    if command_exists "${COMMAND}"; then
+      printf "${COMMAND}"
+      break
+    fi
+  done
+}
+
 determine_host_os() {
   printf "Determining host operating system... "
   local ACCEPTED_VALUES="CYGWIN Darwin Linux MINGW"
@@ -101,19 +114,6 @@ generate_firmware_url() {
   FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
   FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
   printf "done\n"
-}
-
-command_exists() {
-  (test -n "$(command -v ${1})" && return 0) || return 1
-}
-
-which_command() {
-  for COMMAND in ${1}; do
-    if command_exists "${COMMAND}"; then
-      printf "${COMMAND}"
-      break
-    fi
-  done
 }
 
 determine_download_utility() {
