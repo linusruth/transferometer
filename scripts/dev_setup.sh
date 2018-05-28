@@ -187,54 +187,70 @@ convert_firmware_image() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
-determine_os_type() {
+determine_vm_os_type() {
   convert_firmware_image
 
   printf "Determining virtual machine OS type... "
   local ACCEPTED_VALUES="Linux26 Linux26_64"
 
   if test "${OPENWRT_ARCHITECTURE}" = "x86-generic"; then
-    OS_TYPE="Linux26"
+    VM_OS_TYPE="Linux26"
   elif test ${OPENWRT_ARCHITECTURE} = "x86-64"; then
-    OS_TYPE="Linux26_64"
+    VM_OS_TYPE="Linux26_64"
   fi
 
-  if exact_match_in_list "${OS_TYPE}" "${ACCEPTED_VALUES}"; then
-    printf "${OS_TYPE}\n"
+  if exact_match_in_list "${VM_OS_TYPE}" "${ACCEPTED_VALUES}"; then
+    printf "${VM_OS_TYPE}\n"
   else
     printf "error\n"
-    printf "Unable to determine VirtualBox guest OS type.\n"
+    printf "Unable to determine virtual machine OS type.\n"
     exit 1
   fi
 }
 
 create_vm() {
-  determine_os_type
+  determine_vm_os_type
 
   printf "Creating virtual machine... "
   VM_NAME="OpenWrt ${OPENWRT_VERSION}"
   VBoxManage createvm \
     --name "${VM_NAME}" \
-    --ostype "${OS_TYPE}" \
+    --ostype "${VM_OS_TYPE}" \
     --register 1>/dev/null 2>&1
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
-configure_vm_properties() {
+determine_vm_longmode() {
   create_vm
 
-  printf "Configuring virtual machine properties... "
+  printf "Determining virtual machine 'longmode' setting... "
+  local ACCEPTED_VALUES="on off"
+
   if test "${OPENWRT_ARCHITECTURE}" = "x86-64"; then
-    LONGMODE="on"
+    VM_LONGMODE="on"
   else
-    LONGMODE="off"
+    VM_LONGMODE="off"
   fi
+
+  if exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
+    printf "${VM_LONGMODE}\n"
+  else
+    printf "error\n"
+    printf "Unable to determine virtual machine 'longmode' setting.\n"
+    exit 1
+  fi
+}
+
+configure_vm_properties() {
+  determine_vm_longmode
+
+  printf "Configuring virtual machine properties... "
 
   VBoxManage modifyvm "${VM_NAME}" \
     --memory "128" \
     --ioapic "on" \
-    --longmode "${LONGMODE}" \
+    --longmode "${VM_LONGMODE}" \
     --pae "on" \
     --rtcuseutc "on" 1>/dev/null 2>&1
 
