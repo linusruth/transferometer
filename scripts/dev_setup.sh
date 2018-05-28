@@ -6,16 +6,26 @@
 
 OPENWRT_VERSION="17.01.4"
 
+partial_match_in_list() {
+  printf "${1}" | grep -q "${2//[[:space:]]/\\\|}"
+}
+
+exact_match_in_list() {
+  printf "${1}" | grep -qw "${2//[[:space:]]/\\\|}"
+}
+
 determine_host_os() {
   printf "Determining host operating system... "
+  local ACCEPTED_VALUES="CYGWIN Darwin Linux MINGW"
+
   HOST_OS="$(uname -s)"
 
-  if (printf "${HOST_OS}" | grep -q "CYGWIN\|Darwin\|Linux\|MINGW"); then
+  if partial_match_in_list "${HOST_OS}" "${ACCEPTED_VALUES}"; then
     printf "${HOST_OS}\n"
   else
     printf "error\n"
     printf "Host operating system '${HOST_OS}' is not supported.\n"
-    printf "Supported operating systems are: Cygwin Darwin Linux MinGW\n"
+    printf "Supported operating systems are: ${ACCEPTED_VALUES}\n"
     exit 1
   fi
 }
@@ -24,14 +34,16 @@ determine_host_architecture() {
   determine_host_os
 
   printf "Determining host architecture... "
+  local ACCEPTED_VALUES="i386 i486 i586 i686 x86_64"
+
   HOST_ARCHITECTURE="$(uname -m)"
 
-  if (printf "${HOST_ARCHITECTURE}" | grep -qw "^i[[:digit:]]86$\|x86_64"); then
+  if exact_match_in_list "${HOST_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
     printf "${HOST_ARCHITECTURE}\n"
   else
     printf "error\n"
     printf "Host architecture '${HOST_ARCHITECTURE}' is not supported.\n"
-    printf "Supported architectures are: i386 i486 i586 i686 x86_64\n"
+    printf "Supported architectures are: ${ACCEPTED_VALUES}\n"
     exit 1
   fi
 }
@@ -40,6 +52,8 @@ determine_host_virtualization_extensions() {
   determine_host_architecture
 
   printf "Determining if host CPU has virtualization extensions... "
+  local ACCEPTED_VALUES="true false"
+
   if test "${HOST_OS}" = "Linux"; then
     HOST_EXTENSIONS="$(lscpu | grep -qw "svm\|vmx" && printf "true" || printf "false")"
   elif test "${HOST_OS}" = "Darwin"; then
@@ -49,7 +63,7 @@ determine_host_virtualization_extensions() {
     HOST_EXTENSIONS="$(printf "${HOST_EXTENSIONS}" | tr "[:upper:]" "[:lower:]")"
   fi
 
-  if (printf "${HOST_EXTENSIONS}" | grep -qw "true\|false"); then
+  if exact_match_in_list "${HOST_EXTENSIONS}" "${ACCEPTED_VALUES}"; then
     printf "${HOST_EXTENSIONS}\n"
   else
     printf "error\n"
@@ -62,13 +76,15 @@ determine_openwrt_architecture() {
   determine_host_virtualization_extensions
 
   printf "Determining OpenWrt architecture... "
-  if test "${HOST_EXTENSIONS}" = "false"; then
-    OPENWRT_ARCHITECTURE="x86-generic"
-  else
+  local ACCEPTED_VALUES="x86-64 x86-generic"
+
+  if test "${HOST_EXTENSIONS}" = "true"; then
     OPENWRT_ARCHITECTURE="x86-64"
+  else
+    OPENWRT_ARCHITECTURE="x86-generic"
   fi
 
-  if (printf "${OPENWRT_ARCHITECTURE}" | grep -qw "x86-generic\|x86-64"); then
+  if exact_match_in_list "${OPENWRT_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
     printf "${OPENWRT_ARCHITECTURE}\n"
   else
     printf "error\n"
@@ -102,15 +118,16 @@ which_command() {
 
 determine_download_utility() {
   printf "Determining download utility... "
-  SUPPORTED_COMMANDS="curl wget"
-  DOWNLOAD_UTILITY="$(which_command "${SUPPORTED_COMMANDS}")"
+  local ACCEPTED_VALUES="curl wget"
 
-  if (printf "${DOWNLOAD_UTILITY}" | grep -qw "curl\|wget"); then
+  DOWNLOAD_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
+
+  if exact_match_in_list "${DOWNLOAD_UTILITY}" "${ACCEPTED_VALUES}"; then
     printf "${DOWNLOAD_UTILITY}\n"
   else
     printf "error\n"
     printf "Unable to locate compatible download utility.\n"
-    printf "Supported download utilitities are: ${SUPPORTED_COMMANDS}\n"
+    printf "Supported download utilitities are: ${ACCEPTED_VALUES}\n"
     exit 1
   fi
 }
@@ -131,15 +148,16 @@ download_firmware_image() {
 
 determine_extraction_utility() {
   printf "Determining extraction utility... "
-  SUPPORTED_COMMANDS="gunzip gzip"
-  EXTRACTION_UTILITY="$(which_command "${SUPPORTED_COMMANDS}")"
+  local ACCEPTED_VALUES="gunzip gzip"
 
-  if (printf "${EXTRACTION_UTILITY}" | grep -qw "gunzip\|gzip"); then
+  EXTRACTION_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
+
+  if exact_match_in_list "${EXTRACTION_UTILITY}" "${ACCEPTED_VALUES}"; then
     printf "${EXTRACTION_UTILITY}\n"
   else
     printf "error\n"
     printf "Unable to locate compatible extraction utility.\n"
-    printf "Supported extraction utilities are: ${SUPPORTED_COMMANDS}\n"
+    printf "Supported extraction utilities are: ${ACCEPTED_VALUES}\n"
     exit 1
   fi
 }
@@ -173,13 +191,15 @@ determine_os_type() {
   convert_firmware_image
 
   printf "Determining virtual machine OS type... "
+  local ACCEPTED_VALUES="Linux26 Linux26_64"
+
   if test "${OPENWRT_ARCHITECTURE}" = "x86-generic"; then
     OS_TYPE="Linux26"
   elif test ${OPENWRT_ARCHITECTURE} = "x86-64"; then
     OS_TYPE="Linux26_64"
   fi
 
-  if (printf "${OS_TYPE}" | grep -qw "Linux26\|Linux26_64"); then
+  if exact_match_in_list "${OS_TYPE}" "${ACCEPTED_VALUES}"; then
     printf "${OS_TYPE}\n"
   else
     printf "error\n"
