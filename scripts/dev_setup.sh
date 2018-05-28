@@ -6,6 +6,15 @@
 
 OPENWRT_VERSION="17.01.4"
 
+setup_complete() {
+  printf "\nSetup complete!\n\n"
+}
+
+fail() {
+  printf "\nError: ${1}\n\n"
+  exit 1
+}
+
 partial_match_in_list() {
   printf "${1}" | grep -q "${2//[[:space:]]/\\\|}"
 }
@@ -25,11 +34,6 @@ which_command() {
       break
     fi
   done
-}
-
-fail() {
-  printf "\nError: ${1}\n\n"
-  exit 1
 }
 
 verify_command_in_path() {
@@ -57,8 +61,6 @@ determine_host_os() {
 }
 
 determine_host_architecture() {
-  determine_host_os
-
   printf "Determining host architecture... "
   local ACCEPTED_VALUES="i386 i486 i586 i686 x86_64"
 
@@ -72,8 +74,6 @@ determine_host_architecture() {
 }
 
 determine_host_virtualization_extensions() {
-  determine_host_architecture
-
   printf "Determining if host CPU has virtualization extensions... "
   local ACCEPTED_VALUES="true false"
 
@@ -93,8 +93,6 @@ determine_host_virtualization_extensions() {
 }
 
 determine_openwrt_architecture() {
-  determine_host_virtualization_extensions
-
   printf "Determining OpenWrt architecture... "
   local ACCEPTED_VALUES="x86-64 x86-generic"
 
@@ -111,8 +109,6 @@ determine_openwrt_architecture() {
 }
 
 generate_firmware_url() {
-  determine_openwrt_architecture
-
   printf "Generating firmware image URL... "
   BASE_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets"
   FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
@@ -134,9 +130,6 @@ determine_download_utility() {
 }
 
 download_firmware_image() {
-  generate_firmware_url
-  determine_download_utility
-
   printf "Downloading firmware image... "
   if test "${DOWNLOAD_UTILITY}" = "curl"; then
     curl -s -O "${FIRMWARE_URL}"
@@ -161,9 +154,6 @@ determine_extraction_utility() {
 }
 
 extract_firmware_image() {
-  download_firmware_image
-  determine_extraction_utility
-
   printf "Extracting firmware image... "
   if test "${EXTRACTION_UTILITY}" = "gunzip"; then
     gunzip "${FIRMWARE_PACKAGE}"
@@ -175,9 +165,6 @@ extract_firmware_image() {
 }
 
 convert_firmware_image() {
-  extract_firmware_image
-  verify_command_in_path "VBoxManage"
-
   printf "Converting firmware image to VirtualBox Disk Image (VDI)... "
   FIRMWARE_IMAGE="${FIRMWARE_PACKAGE//\.gz/}"
   FIRMWARE_VDI="${FIRMWARE_IMAGE//\.img/\.vdi}"
@@ -187,8 +174,6 @@ convert_firmware_image() {
 }
 
 determine_vm_os_type() {
-  convert_firmware_image
-
   printf "Determining virtual machine OS type... "
   local ACCEPTED_VALUES="Linux26 Linux26_64"
 
@@ -205,8 +190,6 @@ determine_vm_os_type() {
 }
 
 create_vm() {
-  determine_vm_os_type
-
   printf "Creating virtual machine... "
   VM_NAME="OpenWrt ${OPENWRT_VERSION}"
   VBoxManage createvm \
@@ -218,8 +201,6 @@ create_vm() {
 }
 
 determine_vm_longmode() {
-  create_vm
-
   printf "Determining virtual machine 'longmode' setting... "
   local ACCEPTED_VALUES="on off"
 
@@ -236,8 +217,6 @@ determine_vm_longmode() {
 }
 
 configure_vm_properties() {
-  determine_vm_longmode
-
   printf "Configuring virtual machine properties... "
 
   VBoxManage modifyvm "${VM_NAME}" \
@@ -251,8 +230,6 @@ configure_vm_properties() {
 }
 
 create_vm_storage_controller() {
-  configure_vm_properties
-
   printf "Creating virtual machine storage controller... "
   STORAGECTL_NAME="SATA"
   VBoxManage storagectl "${VM_NAME}" \
@@ -265,8 +242,6 @@ create_vm_storage_controller() {
 }
 
 attach_vm_hard_drive() {
-  create_vm_storage_controller
-
   printf "Attaching virtual machine hard drive... "
   VBoxManage storageattach "${VM_NAME}" \
     --storagectl "${STORAGECTL_NAME}" \
@@ -283,8 +258,6 @@ list_vbox_host_networks() {
 }
 
 create_vbox_host_network() {
-  attach_vm_hard_drive
-
   printf "Creating VirtualBox host-only network interface... "
   HOST_NETWORKS_BEFORE="$(list_vbox_host_networks)"
   VBoxManage hostonlyif create 1>/dev/null 2>&1
@@ -296,5 +269,27 @@ create_vbox_host_network() {
   HOST_NETWORK_NAME="$(printf "${HOST_NETWORKS_COMBINED[*]}" | tr " " "\n" | sort | uniq -u)"
 }
 
-create_vbox_host_network
+main() {
+  determine_host_os
+  determine_host_architecture
+  determine_host_virtualization_extensions
+  determine_openwrt_architecture
+  generate_firmware_url
+  determine_download_utility
+  download_firmware_image
+  determine_extraction_utility
+  extract_firmware_image
+  verify_command_in_path "VBoxManage"
+  convert_firmware_image
+  determine_vm_os_type
+  create_vm
+  determine_vm_longmode
+  configure_vm_properties
+  create_vm_storage_controller
+  attach_vm_hard_drive
+  create_vbox_host_network
+  setup_complete
+}
+
+main
 
