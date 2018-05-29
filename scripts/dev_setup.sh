@@ -300,6 +300,11 @@ attach_vm_hard_drive() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
+start_vm() {
+  printf "Starting virtual machine... "
+  VBoxManage startvm "${VM_NAME}" --type headless
+}
+
 main() {
   determine_host_os
   determine_host_architecture
@@ -320,6 +325,7 @@ main() {
   configure_vm_properties
   create_vm_storage_controller
   attach_vm_hard_drive
+  start_vm
   setup_complete
 }
 
