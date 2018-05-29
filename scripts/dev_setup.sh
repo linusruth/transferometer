@@ -6,10 +6,6 @@
 
 OPENWRT_VERSION="17.01.4"
 
-setup_complete() {
-  printf "\nSetup complete!\n\n"
-}
-
 fail() {
   printf "\nError: ${1}\n\n"
   exit 1
@@ -229,8 +225,9 @@ create_vbox_host_network_dhcp_server() {
   local DHCP_NETWORK_LOWER_IP_LAST_OCTET="$((HOST_NETWORK_IP_LAST_OCTET + 1))"
   local DHCP_NETWORK_UPPER_IP_LAST_OCTET="${DHCP_NETWORK_LOWER_IP_LAST_OCTET}"
   local DHCP_NETWORK_PREFIX="$(printf "${HOST_NETWORK_IP}" | grep -o ".*\.")"
-  DHCP_NETWORK_LOWER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_LOWER_IP_LAST_OCTET}"
-  DHCP_NETWORK_UPPER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_UPPER_IP_LAST_OCTET}"
+  local DHCP_NETWORK_LOWER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_LOWER_IP_LAST_OCTET}"
+  local DHCP_NETWORK_UPPER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_UPPER_IP_LAST_OCTET}"
+  VM_IP="${DHCP_NETWORK_LOWER_IP}"
 
   VBoxManage dhcpserver add \
     --ifname "${HOST_NETWORK_NAME}" \
@@ -302,7 +299,19 @@ attach_vm_hard_drive() {
 
 start_vm() {
   printf "Starting virtual machine... "
-  VBoxManage startvm "${VM_NAME}" --type headless
+  VBoxManage startvm "${VM_NAME}" --type headless 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
+setup_complete() {
+  printf "\nSetup complete!\n\n"
+  printf "Please open the VM console and run the following commands:\n\n"
+  printf "uci set network.lan.proto=dhcp\n"
+  printf "uci commit network\n"
+  printf "/etc/init.d/network restart\n\n"
+  printf "After that, you may connect locally to the VM via SSH:\n\n"
+  printf "ssh root@${VM_IP}\n\n"
 }
 
 main() {
