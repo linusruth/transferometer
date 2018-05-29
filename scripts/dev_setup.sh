@@ -200,59 +200,6 @@ create_vm() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
-determine_vm_longmode() {
-  printf "Determining virtual machine 'longmode' setting... "
-  local ACCEPTED_VALUES="on off"
-
-  if test "${OPENWRT_ARCHITECTURE}" = "x86-64"; then
-    VM_LONGMODE="on"
-  else
-    VM_LONGMODE="off"
-  fi
-  printf "${VM_LONGMODE}\n"
-
-  if ! exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
-    fail "Unable to determine virtual machine 'longmode' setting."
-  fi
-}
-
-configure_vm_properties() {
-  printf "Configuring virtual machine properties... "
-
-  VBoxManage modifyvm "${VM_NAME}" \
-    --memory "128" \
-    --ioapic "on" \
-    --longmode "${VM_LONGMODE}" \
-    --pae "on" \
-    --rtcuseutc "on" 1>/dev/null 2>&1
-
-  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
-}
-
-create_vm_storage_controller() {
-  printf "Creating virtual machine storage controller... "
-  STORAGECTL_NAME="SATA"
-  VBoxManage storagectl "${VM_NAME}" \
-    --name "${STORAGECTL_NAME}" \
-    --add "sata" \
-    --controller "IntelAhci" \
-    --portcount "1" 1>/dev/null 2>&1
-
-  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
-}
-
-attach_vm_hard_drive() {
-  printf "Attaching virtual machine hard drive... "
-  VBoxManage storageattach "${VM_NAME}" \
-    --storagectl "${STORAGECTL_NAME}" \
-    --port "0" \
-    --device "0" \
-    --type "hdd" \
-    --medium "${FIRMWARE_VDI}" 1>/dev/null 2>&1
-
-  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
-}
-
 list_vbox_host_networks() {
   VBoxManage list hostonlyifs
 }
@@ -296,6 +243,63 @@ create_vbox_host_network_dhcp_server() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
+determine_vm_longmode() {
+  printf "Determining virtual machine 'longmode' setting... "
+  local ACCEPTED_VALUES="on off"
+
+  if test "${OPENWRT_ARCHITECTURE}" = "x86-64"; then
+    VM_LONGMODE="on"
+  else
+    VM_LONGMODE="off"
+  fi
+  printf "${VM_LONGMODE}\n"
+
+  if ! exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
+    fail "Unable to determine virtual machine 'longmode' setting."
+  fi
+}
+
+configure_vm_properties() {
+  printf "Configuring virtual machine properties... "
+
+  VBoxManage modifyvm "${VM_NAME}" \
+    --hostonlyadapter1 "${HOST_NETWORK_NAME}" \
+    --ioapic "on" \
+    --longmode "${VM_LONGMODE}" \
+    --memory "128" \
+    --nic1 "hostonly" \
+    --nic2 "nat" \
+    --nicpromisc1 "deny" \
+    --pae "on" \
+    --rtcuseutc "on" 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
+create_vm_storage_controller() {
+  printf "Creating virtual machine storage controller... "
+  STORAGECTL_NAME="SATA"
+  VBoxManage storagectl "${VM_NAME}" \
+    --name "${STORAGECTL_NAME}" \
+    --add "sata" \
+    --controller "IntelAhci" \
+    --portcount "1" 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
+attach_vm_hard_drive() {
+  printf "Attaching virtual machine hard drive... "
+  VBoxManage storageattach "${VM_NAME}" \
+    --storagectl "${STORAGECTL_NAME}" \
+    --port "0" \
+    --device "0" \
+    --type "hdd" \
+    --medium "${FIRMWARE_VDI}" 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
 main() {
   determine_host_os
   determine_host_architecture
@@ -310,12 +314,12 @@ main() {
   convert_firmware_image
   determine_vm_os_type
   create_vm
+  create_vbox_host_network
+  create_vbox_host_network_dhcp_server
   determine_vm_longmode
   configure_vm_properties
   create_vm_storage_controller
   attach_vm_hard_drive
-  create_vbox_host_network
-  create_vbox_host_network_dhcp_server
   setup_complete
 }
 
