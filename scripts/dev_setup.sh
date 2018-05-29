@@ -254,19 +254,21 @@ attach_vm_hard_drive() {
 }
 
 list_vbox_host_networks() {
-  VBoxManage list hostonlyifs | grep -o "vboxnet[0-9]*$" | uniq | sort | tr "\n" " "
+  VBoxManage list hostonlyifs
 }
 
 create_vbox_host_network() {
   printf "Creating VirtualBox host-only network interface... "
-  HOST_NETWORKS_BEFORE="$(list_vbox_host_networks)"
+  local NETWORKS_BEFORE="$(list_vbox_host_networks)"
   VBoxManage hostonlyif create 1>/dev/null 2>&1
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 
-  HOST_NETWORKS_AFTER="$(list_vbox_host_networks)"
-  HOST_NETWORKS_COMBINED=(${HOST_NETWORKS_BEFORE} ${HOST_NETWORKS_AFTER})
-  HOST_NETWORK_NAME="$(printf "${HOST_NETWORKS_COMBINED[*]}" | tr " " "\n" | sort | uniq -u)"
+  local NETWORKS_AFTER="$(list_vbox_host_networks)"
+  local NEW_NETWORK="$(diff <(echo "${NETWORKS_BEFORE}") <(echo "${NETWORKS_AFTER}"))"
+  HOST_NETWORK_NAME="$(printf "${NEW_NETWORK}" | grep -ow "Name.*" | grep -ow "vboxnet.*")"
+  HOST_NETWORK_IP="$(printf "${NEW_NETWORK}" | grep -ow "IPAddress.*" | grep -ow "[1-9].*")"
+  HOST_NETWORK_MASK="$(printf "${NEW_NETWORK}" | grep -ow "NetworkMask.*" | grep -ow "255.*")"
 }
 
 main() {
