@@ -266,7 +266,7 @@ create_vbox_host_network() {
 
   local NETWORKS_AFTER="$(list_vbox_host_networks)"
   local NEW_NETWORK="$(diff <(echo "${NETWORKS_BEFORE}") <(echo "${NETWORKS_AFTER}"))"
-  HOST_NETWORK_NAME="$(printf "${NEW_NETWORK}" | grep -ow "Name.*" | grep -ow "vboxnet.*")"
+  HOST_NETWORK_NAME="$(printf "${NEW_NETWORK}" | grep -ow "Name.*" | grep -ow "vboxnet.*\|VirtualBox.*$")"
   HOST_NETWORK_IP="$(printf "${NEW_NETWORK}" | grep -ow "IPAddress.*" | grep -ow "[1-9].*")"
   HOST_NETWORK_MASK="$(printf "${NEW_NETWORK}" | grep -ow "NetworkMask.*" | grep -ow "255.*")"
 }
