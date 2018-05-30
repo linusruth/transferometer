@@ -160,11 +160,18 @@ extract_firmware_image() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1) 
 }
 
-convert_firmware_image() {
+convert_firmware_image_to_vdi() {
   printf "Converting firmware image to VirtualBox Disk Image (VDI)... "
   FIRMWARE_IMAGE="${FIRMWARE_PACKAGE//\.gz/}"
   FIRMWARE_VDI="${FIRMWARE_IMAGE//\.img/\.vdi}"
   VBoxManage convertfromraw --format VDI ${FIRMWARE_IMAGE} ${FIRMWARE_VDI} 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
+delete_firmware_image() {
+  printf "Deleting firmware image... "
+  rm -f "${FIRMWARE_IMAGE}"
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
@@ -305,7 +312,7 @@ determine_vm_folder() {
 
 move_vdi_to_vm_folder() {
   printf "Moving VirtualBox Disk Image (VDI) to virtual machine folder... "
-  mv ${FIRMWARE_VDI} ${VM_FOLDER}
+  mv "${FIRMWARE_VDI}" "${VM_FOLDER}"
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
@@ -350,7 +357,8 @@ main() {
   determine_extraction_utility
   extract_firmware_image
   verify_command_in_path "VBoxManage"
-  convert_firmware_image
+  convert_firmware_image_to_vdi
+  delete_firmware_image
   determine_vm_os_type
   create_vm
   create_vbox_host_network
