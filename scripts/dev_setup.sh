@@ -296,6 +296,20 @@ determine_vbox_default_machine_folder() {
   printf "done\n"
 }
 
+determine_vm_folder() {
+  printf "Determining virtual machine folder... "
+  VM_FOLDER="${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}"
+
+  printf "done\n"
+}
+
+move_vdi_to_vm_folder() {
+  printf "Moving VirtualBox Disk Image (VDI) to virtual machine folder... "
+  mv ${FIRMWARE_VDI} ${VM_FOLDER}
+
+  (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
+}
+
 attach_vm_hard_drive() {
   printf "Attaching virtual machine hard drive... "
   VBoxManage storageattach "${VM_NAME}" \
@@ -303,7 +317,7 @@ attach_vm_hard_drive() {
     --port "0" \
     --device "0" \
     --type "hdd" \
-    --medium "${FIRMWARE_VDI}" 1>/dev/null 2>&1
+    --medium "${VM_FOLDER}/${FIRMWARE_VDI}" 1>/dev/null 2>&1
 
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
@@ -345,6 +359,8 @@ main() {
   configure_vm_properties
   create_vm_storage_controller
   determine_vbox_default_machine_folder
+  determine_vm_folder
+  move_vdi_to_vm_folder
   attach_vm_hard_drive
   start_vm
   setup_complete
