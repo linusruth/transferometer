@@ -285,6 +285,17 @@ create_vm_storage_controller() {
   (test -n "${?}" && printf "done\n") || (printf "error\n" && exit 1)
 }
 
+determine_vbox_default_machine_folder() {
+  printf "Determining VirtualBox default machine folder... "
+  local SYSTEM_PROPERTIES="$(VBoxManage list systemproperties)"
+  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${SYSTEM_PROPERTIES}" | \
+    grep -ow "^Default machine folder:.*$" | \
+    grep -ow "[[:blank:]].*$" | \
+    grep -ow "[[:alnum:][:punct:]].*$")"
+
+  printf "done\n"
+}
+
 attach_vm_hard_drive() {
   printf "Attaching virtual machine hard drive... "
   VBoxManage storageattach "${VM_NAME}" \
@@ -333,6 +344,7 @@ main() {
   determine_vm_longmode
   configure_vm_properties
   create_vm_storage_controller
+  determine_vbox_default_machine_folder
   attach_vm_hard_drive
   start_vm
   setup_complete
