@@ -294,11 +294,11 @@ create_vm_storage_controller() {
 
 determine_vbox_default_machine_folder() {
   printf "Determining VirtualBox default machine folder... "
-  local SYSTEM_PROPERTIES="$(VBoxManage list systemproperties)"
-  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${SYSTEM_PROPERTIES}" | \
+  VBOX_DEFAULT_MACHINE_FOLDER="$(VBoxManage list systemproperties | \
     grep -ow "^Default machine folder:.*$" | \
     grep -ow "[[:blank:]].*$" | \
-    grep -ow "[[:alnum:][:punct:]].*$")"
+    grep -ow "[[:alnum:][:punct:]].*$" | \
+    tr '\\' '/')"
 
   printf "done\n"
 }
