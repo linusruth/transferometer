@@ -12,11 +12,11 @@ fail() {
 }
 
 partial_match_in_list() {
-  printf "${1}" | grep -q "${2//[[:space:]]/\\\|}"
+  printf "${1}" | grep -q "${2//[[:space:]]/\\|}"
 }
 
 exact_match_in_list() {
-  printf "${1}" | grep -qw "${2//[[:space:]]/\\\|}"
+  printf "${1}" | grep -qw "${2//[[:space:]]/\\|}"
 }
 
 command_exists() {
