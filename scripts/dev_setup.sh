@@ -351,7 +351,6 @@ main() {
   determine_host_architecture
   determine_host_virtualization_extensions
   determine_openwrt_architecture
-  generate_firmware_url
   determine_download_utility
   download_firmware_image
   determine_extraction_utility
