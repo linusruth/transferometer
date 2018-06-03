@@ -5,6 +5,7 @@
 # This is free software, licensed under the Apache License, Version 2.0.
 
 OPENWRT_VERSION="17.01.4"
+TEMPORARY_DIRECTORY="/tmp/"
 
 fail() {
   printf "\nError: ${1}\n\n"
@@ -104,14 +105,6 @@ determine_openwrt_architecture() {
   fi
 }
 
-generate_firmware_url() {
-  printf 'Generating firmware image URL... '
-  BASE_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets"
-  FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
-  FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
-  printf 'done\n'
-}
-
 determine_download_utility() {
   printf 'Determining download utility... '
   local ACCEPTED_VALUES="curl wget"
@@ -127,10 +120,15 @@ determine_download_utility() {
 
 download_firmware_image() {
   printf 'Downloading firmware image... '
+  BASE_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets"
+  FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
+  FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
+  FIRMWARE_PACKAGE_PATH="${TEMPORARY_DIRECTORY}/${FIRMWARE_PACKAGE}"
+
   if test "${DOWNLOAD_UTILITY}" = 'curl'; then
-    curl -s -O "${FIRMWARE_URL}"
+    curl -Los "${FIRMWARE_URL}" > "${FIRMWARE_PACKAGE_PATH}"
   elif test "${DOWNLOAD_UTILITY}" = 'wget'; then
-    wget -q "${FIRMWARE_URL}"
+    wget -q -O "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
   fi
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
