@@ -115,6 +115,7 @@ determine_download_utility() {
   if ! exact_match_in_list "${DOWNLOAD_UTILITY}" "${ACCEPTED_VALUES}"; then
     fail 'Unable to locate compatible download utility.\n' \
       "Supported download utilitities are: ${ACCEPTED_VALUES}"
+  fi
 }
 
 download_firmware_image() {
