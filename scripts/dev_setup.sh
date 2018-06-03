@@ -100,7 +100,7 @@ determine_vm_long_mode() {
   fi
   printf "${VM_LONGMODE}\n"
 
-  if ! exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
+  if ! exact_match_in_list "${VM_LONG_MODE}" "${ACCEPTED_VALUES}"; then
     fail 'Unable to determine virtual machine longmode setting.'
   fi
 }
