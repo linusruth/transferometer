@@ -126,7 +126,7 @@ download_firmware_image() {
   FIRMWARE_PACKAGE_PATH="${TEMPORARY_DIRECTORY}/${FIRMWARE_PACKAGE}"
 
   if test "${DOWNLOAD_UTILITY}" = 'curl'; then
-    curl -L -s -o "${FIRMWARE_URL}" > "${FIRMWARE_PACKAGE_PATH}"
+    curl -L -s -o "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
   elif test "${DOWNLOAD_UTILITY}" = 'wget'; then
     wget -q -O "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
   fi
