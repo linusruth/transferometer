@@ -4,8 +4,8 @@
 #
 # This is free software, licensed under the Apache License, Version 2.0.
 
-OPENWRT_VERSION="17.01.4"
-TEMPORARY_DIRECTORY="/tmp/"
+OPENWRT_VERSION='17.01.4'
+OPENWRT_MIRROR='downloads.openwrt.org'
 
 fail() {
   printf "\nError: ${1}\n\n"
@@ -89,99 +89,30 @@ determine_host_virtualization_extensions() {
   fi
 }
 
-determine_openwrt_architecture() {
-  printf 'Determining OpenWrt architecture... '
-  local ACCEPTED_VALUES='x86-64 x86-generic'
+determine_vm_long_mode() {
+  printf 'Determining virtual machine long mode (64-bit) setting... '
+  local ACCEPTED_VALUES='on off'
 
   if test "${HOST_EXTENSIONS}" = 'true'; then
-    OPENWRT_ARCHITECTURE='x86-64'
+    VM_LONG_MODE='on'
   else
-    OPENWRT_ARCHITECTURE='x86-generic'
+    VM_LONG_MODE='off'
   fi
-  printf "${OPENWRT_ARCHITECTURE}\n"
+  printf "${VM_LONGMODE}\n"
 
-  if ! exact_match_in_list "${OPENWRT_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
-    fail 'Unable to determine OpenWRT architecture.'
+  if ! exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
+    fail 'Unable to determine virtual machine longmode setting.'
   fi
-}
-
-determine_download_utility() {
-  printf 'Determining download utility... '
-  local ACCEPTED_VALUES="curl wget"
-
-  DOWNLOAD_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
-  printf "${DOWNLOAD_UTILITY}\n"
-
-  if ! exact_match_in_list "${DOWNLOAD_UTILITY}" "${ACCEPTED_VALUES}"; then
-    fail 'Unable to locate compatible download utility.\n' \
-      "Supported download utilitities are: ${ACCEPTED_VALUES}"
-  fi
-}
-
-download_firmware_image() {
-  printf 'Downloading firmware image... '
-  BASE_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets"
-  FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
-  FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
-  FIRMWARE_PACKAGE_PATH="${TEMPORARY_DIRECTORY}/${FIRMWARE_PACKAGE}"
-
-  if test "${DOWNLOAD_UTILITY}" = 'curl'; then
-    curl -L -s -o "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
-  elif test "${DOWNLOAD_UTILITY}" = 'wget'; then
-    wget -q -O "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
-  fi
-
-  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
-}
-
-determine_extraction_utility() {
-  printf 'Determining extraction utility... '
-  local ACCEPTED_VALUES='gunzip gzip'
-
-  EXTRACTION_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
-  printf "${EXTRACTION_UTILITY}\n"
-
-  if ! exact_match_in_list "${EXTRACTION_UTILITY}" "${ACCEPTED_VALUES}"; then
-    fail 'Unable to locate compatible extraction utility.\n' \
-      "Supported extraction utilities are: ${ACCEPTED_VALUES}"
-  fi
-}
-
-extract_firmware_image() {
-  printf 'Extracting firmware image... '
-  if test "${EXTRACTION_UTILITY}" = 'gunzip'; then
-    gunzip "${FIRMWARE_PACKAGE_PATH}"
-  elif test "${EXTRACTION_UTILITY}" = 'gzip'; then
-    gzip -d "${FIRMWARE_PACKAGE_PATH}"
-  fi
-
-  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1) 
-}
-
-convert_firmware_image_to_vdi() {
-  printf 'Converting firmware image to VirtualBox Disk Image (VDI)... '
-  FIRMWARE_IMAGE="${FIRMWARE_PACKAGE//.gz/}"
-  FIRMWARE_VDI="${FIRMWARE_IMAGE//.img/.vdi}"
-  VBoxManage convertfromraw --format VDI ${FIRMWARE_IMAGE} ${FIRMWARE_VDI} 1>/dev/null 2>&1
-
-  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
-}
-
-delete_firmware_image() {
-  printf 'Deleting firmware image... '
-  rm -f "${FIRMWARE_IMAGE}"
-
-  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
 
 determine_vm_os_type() {
   printf 'Determining virtual machine OS type... '
-  local ACCEPTED_VALUES='Linux26 Linux26_64'
+  local ACCEPTED_VALUES='Linux26_64 Linux26'
 
-  if test "${OPENWRT_ARCHITECTURE}" = 'x86-generic'; then
-    VM_OS_TYPE='Linux26'
-  elif test ${OPENWRT_ARCHITECTURE} = 'x86-64'; then
+  if test "${VM_LONG_MODE}" = 'on'; then
     VM_OS_TYPE='Linux26_64'
+  else
+    VM_OS_TYPE='Linux26'
   fi
   printf "${VM_OS_TYPE}\n"
 
@@ -245,29 +176,13 @@ create_vbox_host_network_dhcp_server() {
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
 
-determine_vm_longmode() {
-  printf 'Determining virtual machine longmode setting... '
-  local ACCEPTED_VALUES='on off'
-
-  if test "${OPENWRT_ARCHITECTURE}" = 'x86-64'; then
-    VM_LONGMODE='on'
-  else
-    VM_LONGMODE='off'
-  fi
-  printf "${VM_LONGMODE}\n"
-
-  if ! exact_match_in_list "${VM_LONGMODE}" "${ACCEPTED_VALUES}"; then
-    fail 'Unable to determine virtual machine longmode setting.'
-  fi
-}
-
 configure_vm_properties() {
   printf 'Configuring virtual machine properties... '
 
   VBoxManage modifyvm "${VM_NAME}" \
     --hostonlyadapter1 "${HOST_NETWORK_NAME}" \
     --ioapic 'on' \
-    --longmode "${VM_LONGMODE}" \
+    --longmode "${VM_LONG_MODE}" \
     --memory '128' \
     --nic1 'hostonly' \
     --nic2 'nat' \
@@ -297,22 +212,107 @@ determine_vbox_default_machine_folder() {
     cut -d ':' -f 2- | \
     grep -ow '[[:alnum:][:punct:]].*$' | \
     tr '\\' '/')"
-  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${VBOX_DEFAULT_MACHINE_FOLDER}" | \
+  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${VBOX_DEFAULT_MACHINE_FOLDER}/" | \
     tr -s '/')"
+  printf "${VBOX_DEFAULT_MACHINE_FOLDER}\n"
 
-  printf 'done\n'
+  if test -d "${VBOX_DEFAULT_MACHINE_FOLDER}"; then
+    fail 'Unable to determine VirtualBox default machine folder.'
+  fi
 }
 
 determine_vm_folder() {
   printf 'Determining virtual machine folder... '
-  VM_FOLDER="${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}"
+  VM_FOLDER="$(printf "${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}/" | \
+    tr -s '/')"
+  printf "${VM_FOLDER}\n"
 
-  printf 'done\n'
+  if test -d "${VM_FOLDER}"; then
+    fail 'Unable to determine virtual machine folder.'
+  fi
 }
 
-move_vdi_to_vm_folder() {
-  printf 'Moving VirtualBox Disk Image (VDI) to virtual machine folder... '
-  mv "${FIRMWARE_VDI}" "${VM_FOLDER}"
+determine_openwrt_architecture() {
+  printf 'Determining OpenWrt architecture... '
+  local ACCEPTED_VALUES='x86-64 x86-generic'
+
+  if test "${VM_OS_TYPE}" = 'Linux26_64'; then
+    OPENWRT_ARCHITECTURE='x86-64'
+  else
+    OPENWRT_ARCHITECTURE='x86-generic'
+  fi
+  printf "${OPENWRT_ARCHITECTURE}\n"
+
+  if ! exact_match_in_list "${OPENWRT_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
+    fail 'Unable to determine OpenWRT architecture.'
+  fi
+}
+
+determine_download_utility() {
+  printf 'Determining download utility... '
+  local ACCEPTED_VALUES="curl wget"
+
+  DOWNLOAD_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
+  printf "${DOWNLOAD_UTILITY}\n"
+
+  if ! exact_match_in_list "${DOWNLOAD_UTILITY}" "${ACCEPTED_VALUES}"; then
+    fail 'Unable to locate compatible download utility.\n' \
+      "Supported download utilitities are: ${ACCEPTED_VALUES}"
+  fi
+}
+
+download_firmware_image() {
+  printf 'Downloading firmware image... '
+  FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
+  FIRMWARE_PACKAGE_PATH="$(printf "${VM_FOLDER}/${FIRMWARE_PACKAGE}" | tr -s '/')"
+  local BASE_URL="https://${OPENWRT_MIRROR}/releases/${OPENWRT_VERSION}/targets"
+  local FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
+
+  if test "${DOWNLOAD_UTILITY}" = 'curl'; then
+    curl -L -s -o "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
+  elif test "${DOWNLOAD_UTILITY}" = 'wget'; then
+    wget -q -O "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
+  fi
+
+  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
+}
+
+determine_extraction_utility() {
+  printf 'Determining extraction utility... '
+  local ACCEPTED_VALUES='gunzip gzip'
+
+  EXTRACTION_UTILITY="$(which_command "${ACCEPTED_VALUES}")"
+  printf "${EXTRACTION_UTILITY}\n"
+
+  if ! exact_match_in_list "${EXTRACTION_UTILITY}" "${ACCEPTED_VALUES}"; then
+    fail 'Unable to locate compatible extraction utility.\n' \
+      "Supported extraction utilities are: ${ACCEPTED_VALUES}"
+  fi
+}
+
+extract_firmware_image() {
+  printf 'Extracting firmware image... '
+  if test "${EXTRACTION_UTILITY}" = 'gunzip'; then
+    gunzip "${FIRMWARE_PACKAGE_PATH}"
+  elif test "${EXTRACTION_UTILITY}" = 'gzip'; then
+    gzip -d "${FIRMWARE_PACKAGE_PATH}"
+  fi
+
+  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1) 
+}
+
+convert_firmware_image_to_vdi() {
+  printf 'Converting firmware image to VirtualBox Disk Image (VDI)... '
+  FIRMWARE_IMAGE="${FIRMWARE_PACKAGE_PATH//.gz/}"
+  FIRMWARE_VDI="${FIRMWARE_IMAGE//.img/.vdi}"
+  VBoxManage convertfromraw --format VDI ${FIRMWARE_IMAGE} ${FIRMWARE_VDI} 1>/dev/null 2>&1
+
+  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
+}
+
+delete_firmware_image() {
+  printf 'Deleting firmware image... '
+  rm -f "${FIRMWARE_IMAGE}"
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
@@ -324,7 +324,7 @@ attach_vm_hard_drive() {
     --port '0' \
     --device '0' \
     --type 'hdd' \
-    --medium "${VM_FOLDER}/${FIRMWARE_VDI}" 1>/dev/null 2>&1
+    --medium "${FIRMWARE_VDI}" 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
@@ -350,24 +350,23 @@ main() {
   determine_host_os
   determine_host_architecture
   determine_host_virtualization_extensions
+  determine_vm_long_mode
+  determine_vm_os_type
+  verify_command_in_path 'VBoxManage'
+  create_vm
+  create_vbox_host_network
+  create_vbox_host_network_dhcp_server
+  configure_vm_properties
+  create_vm_storage_controller
+  determine_vbox_default_machine_folder
+  determine_vm_folder
   determine_openwrt_architecture
   determine_download_utility
   download_firmware_image
   determine_extraction_utility
   extract_firmware_image
-  verify_command_in_path 'VBoxManage'
   convert_firmware_image_to_vdi
   delete_firmware_image
-  determine_vm_os_type
-  create_vm
-  create_vbox_host_network
-  create_vbox_host_network_dhcp_server
-  determine_vm_longmode
-  configure_vm_properties
-  create_vm_storage_controller
-  determine_vbox_default_machine_folder
-  determine_vm_folder
-  move_vdi_to_vm_folder
   attach_vm_hard_drive
   start_vm
   setup_complete
