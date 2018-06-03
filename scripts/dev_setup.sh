@@ -266,7 +266,7 @@ download_firmware_image() {
   FIRMWARE_PACKAGE="lede-${OPENWRT_VERSION}-${OPENWRT_ARCHITECTURE}-combined-ext4.img.gz"
   FIRMWARE_PACKAGE_PATH="$(printf "${VM_FOLDER}/${FIRMWARE_PACKAGE}" | tr -s '/')"
   local BASE_URL="https://${OPENWRT_MIRROR}/releases/${OPENWRT_VERSION}/targets"
-  local FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-/\/}/${FIRMWARE_PACKAGE}"
+  local FIRMWARE_URL="${BASE_URL}/${OPENWRT_ARCHITECTURE//-//}/${FIRMWARE_PACKAGE}"
 
   if test "${DOWNLOAD_UTILITY}" = 'curl'; then
     curl -L -s -o "${FIRMWARE_PACKAGE_PATH}" "${FIRMWARE_URL}"
