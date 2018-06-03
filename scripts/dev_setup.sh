@@ -216,7 +216,7 @@ determine_vbox_default_machine_folder() {
     tr -s '/')"
   printf "${VBOX_DEFAULT_MACHINE_FOLDER}\n"
 
-  if test -d "${VBOX_DEFAULT_MACHINE_FOLDER}"; then
+  if ! test -d "${VBOX_DEFAULT_MACHINE_FOLDER}"; then
     fail 'Unable to determine VirtualBox default machine folder.'
   fi
 }
@@ -227,7 +227,7 @@ determine_vm_folder() {
     tr -s '/')"
   printf "${VM_FOLDER}\n"
 
-  if test -d "${VM_FOLDER}"; then
+  if ! test -d "${VM_FOLDER}"; then
     fail 'Unable to determine virtual machine folder.'
   fi
 }
