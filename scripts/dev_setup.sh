@@ -305,7 +305,7 @@ convert_firmware_image_to_vdi() {
   printf 'Converting firmware image to VirtualBox Disk Image (VDI)... '
   FIRMWARE_IMAGE="${FIRMWARE_PACKAGE_PATH//.gz/}"
   FIRMWARE_VDI="${FIRMWARE_IMAGE//.img/.vdi}"
-  VBoxManage convertfromraw --format VDI ${FIRMWARE_IMAGE} ${FIRMWARE_VDI} 1>/dev/null 2>&1
+  VBoxManage convertfromraw --format VDI "${FIRMWARE_IMAGE}" "${FIRMWARE_VDI}" 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
