@@ -121,6 +121,15 @@ determine_vm_os_type() {
   fi
 }
 
+verify_vbox_kernel_modules_installed() {
+  printf 'Verifying that VirtualBox kernel modules are installed... '
+  if (printf "${HOST_OS}" | grep -q 'Linux\|Darwin'); then
+    (test -e '/dev/vboxnetctl' && printf 'true\n') || (printf 'false\n' && exit 1)
+  else
+    printf 'N/A\n'
+  fi
+}
+
 create_vm() {
   printf 'Creating virtual machine... '
   VM_NAME="OpenWrt ${OPENWRT_VERSION}"
@@ -352,6 +361,7 @@ main() {
   determine_host_virtualization_extensions
   determine_vm_long_mode
   determine_vm_os_type
+  verify_vbox_kernel_modules_installed
   verify_command_in_path 'VBoxManage'
   create_vm
   create_vbox_host_network
