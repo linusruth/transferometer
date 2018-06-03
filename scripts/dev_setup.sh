@@ -115,7 +115,7 @@ determine_download_utility() {
   if ! exact_match_in_list "${DOWNLOAD_UTILITY}" "${ACCEPTED_VALUES}"; then
     fail 'Unable to locate compatible download utility.\n' \
       "Supported download utilitities are: ${ACCEPTED_VALUES}"
-  fi
+  i
 }
 
 download_firmware_image() {
@@ -150,9 +150,9 @@ determine_extraction_utility() {
 extract_firmware_image() {
   printf 'Extracting firmware image... '
   if test "${EXTRACTION_UTILITY}" = 'gunzip'; then
-    gunzip "${FIRMWARE_PACKAGE}"
+    gunzip "${FIRMWARE_PACKAGE_PATH}"
   elif test "${EXTRACTION_UTILITY}" = 'gzip'; then
-    gzip -d "${FIRMWARE_PACKAGE}"
+    gzip -d "${FIRMWARE_PACKAGE_PATH}"
   fi
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1) 
