@@ -124,7 +124,12 @@ determine_vm_os_type() {
 verify_vbox_kernel_modules_installed() {
   printf 'Verifying that VirtualBox kernel modules are installed... '
   if (printf "${HOST_OS}" | grep -q 'Linux\|Darwin'); then
-    (test -e '/dev/vboxnetctl' && printf 'true\n') || (printf 'false\n' && exit 1)
+    if test -e '/dev/vboxnetctl'; then
+      printf 'true\n'
+    else
+      printf 'false\n'
+      fail 'Unable to locate VirtualBox kernel modules.'
+    fi
   else
     printf 'N/A\n'
   fi
