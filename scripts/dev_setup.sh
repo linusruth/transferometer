@@ -221,13 +221,12 @@ create_vm_storage_controller() {
 
 determine_vbox_default_machine_folder() {
   printf 'Determining VirtualBox default machine folder... '
-  VBOX_DEFAULT_MACHINE_FOLDER="$(VBoxManage list systemproperties | \
-    grep -ow '^Default machine folder:.*$' | \
-    cut -d ':' -f 2- | \
-    grep -ow '[[:alnum:][:punct:]].*$' | \
-    tr '\\' '/')"
-  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${VBOX_DEFAULT_MACHINE_FOLDER}/" | \
-    tr -s '/')"
+  local TEMP="$(VBoxManage list systemproperties | tr '\\' '/')"
+  TEMP="$(printf "${TEMP}" | grep -ow '^Default machine folder:[[:print:]]*')"
+  TEMP="$(printf "${TEMP}" | cut -d ':' -f 2-)"
+  TEMP="$(printf "${TEMP}" | grep -ow '[[:alnum:][:punct:]].*')"
+  TEMP="$(printf "${TEMP}/" | tr -s '/')"
+  VBOX_DEFAULT_MACHINE_FOLDER="${TEMP}"
   printf "${VBOX_DEFAULT_MACHINE_FOLDER}\n"
 
   if ! test -d "${VBOX_DEFAULT_MACHINE_FOLDER}"; then
@@ -237,8 +236,9 @@ determine_vbox_default_machine_folder() {
 
 determine_vm_folder() {
   printf 'Determining virtual machine folder... '
-  VM_FOLDER="$(printf "${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}/" | \
-    tr -s '/')"
+  local TEMP="${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}/"
+  TEMP="$(printf "${TEMP}" | tr -s '/')"
+  VM_FOLDER="${TEMP}"
   printf "${VM_FOLDER}\n"
 
   if ! test -d "${VM_FOLDER}"; then
