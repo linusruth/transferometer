@@ -75,13 +75,11 @@ determine_host_virtualization_extensions() {
   local ACCEPTED_VALUES='true false'
 
   if test "${HOST_OS}" = 'Linux'; then
-    local COMMAND="lscpu | grep -qw 'svm\|vmx'"
-    HOST_EXTENSIONS="$(${COMMAND} && printf 'true' || printf 'false')"
+    HOST_EXTENSIONS="$(lscpu | grep -qw 'svm\|vmx' && printf 'true' || printf 'false')"
   elif test "${HOST_OS}" = 'Darwin'; then
-    local COMMAND="sysctl -a | grep -qw 'VMX'"
-    HOST_EXTENSIONS="$(${COMMAND} && printf 'true' || printf 'false')"
+    HOST_EXTENSIONS="$(sysctl -a | grep -qw 'VMX' && printf 'true' || printf 'false')"
   elif (printf "${HOST_OS}" | grep -q 'CYGWIN\|MINGW'); then
-    local COMMAND="(GWMI Win32_Processor).VirtualizationFirmwareEnabled"
+    local COMMAND='(GWMI Win32_Processor).VirtualizationFirmwareEnabled'
     local TEMP="$(powershell -c "${COMMAND}" | tr '[:upper:]' '[:lower:]')"
     HOST_EXTENSIONS="$(printf "${TEMP}" | grep -o '[[:print:]]*')"
   fi
@@ -149,27 +147,23 @@ create_vm() {
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
 
-list_vbox_host_networks() {
-  VBoxManage list hostonlyifs
-}
-
 create_vbox_host_network() {
   printf 'Creating VirtualBox host-only network interface... '
-  local BEFORE="$(list_vbox_host_networks)"
+  local BEFORE="$(VBoxManage list hostonlyifs)"
   VBoxManage hostonlyif create 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 
-  local AFTER="$(list_vbox_host_networks)"
+  local AFTER="$(VBoxManage list hostonlyifs)"
   local NEW_NETWORK="$(diff <(echo "${BEFORE}") <(echo "${AFTER}"))"
 
   local TEMP1="$(printf "${NEW_NETWORK}" | grep -ow 'Name[[:print:]]*')"
   HOST_NETWORK_NAME="$(printf "${TEMP1}" | grep -ow 'vboxnet.*\|VirtualBox.*')"
 
-  local TEMP2="$(printf "${NEW_NETWORKS}" | grep -ow 'IPAddress[[:print:]]*')"
+  local TEMP2="$(printf "${NEW_NETWORK}" | grep -ow 'IPAddress[[:print:]]*')"
   HOST_NETWORK_IP="$(printf "${TEMP2}" | grep -ow '[1-9].*')"
 
-  local TEMP3="$(printf "${NEW_NETWORKS}" | grep -ow 'NetworkMask[[:print:]]*')"
+  local TEMP3="$(printf "${NEW_NETWORK}" | grep -ow 'NetworkMask[[:print:]]*')"
   HOST_NETWORK_MASK="$(printf "${TEMP3}" | grep -ow '255.*')"
 }
 
