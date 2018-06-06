@@ -48,7 +48,7 @@ determine_host_os() {
   printf 'Determining host operating system... '
   local ACCEPTED_VALUES='CYGWIN Darwin Linux MINGW'
 
-  HOST_OS="$(uname -s | grep -o '[[:print:]]*')"
+  HOST_OS="$(uname -s | grep -ow '[[:print:]]*')"
   printf "${HOST_OS}\n"
 
   if ! partial_match_in_list "${HOST_OS}" "${ACCEPTED_VALUES}"; then
@@ -61,7 +61,7 @@ determine_host_architecture() {
   printf 'Determining host architecture... '
   local ACCEPTED_VALUES='i386 i486 i586 i686 x86_64'
 
-  HOST_ARCHITECTURE="$(uname -m | grep -o '[[:print:]]*')"
+  HOST_ARCHITECTURE="$(uname -m | grep -ow '[[:print:]]*')"
   printf "${HOST_ARCHITECTURE}\n"
 
   if ! exact_match_in_list "${HOST_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
@@ -81,7 +81,7 @@ determine_host_virtualization_extensions() {
   elif (printf "${HOST_OS}" | grep -q 'CYGWIN\|MINGW'); then
     local COMMAND='(GWMI Win32_Processor).VirtualizationFirmwareEnabled'
     local TEMP="$(powershell -c "${COMMAND}" | tr '[:upper:]' '[:lower:]')"
-    HOST_EXTENSIONS="$(printf "${TEMP}" | grep -o '[[:print:]]*')"
+    HOST_EXTENSIONS="$(printf "${TEMP}" | grep -ow '[[:print:]]*')"
   fi
   printf "${HOST_EXTENSIONS}\n"
 
