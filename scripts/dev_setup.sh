@@ -12,6 +12,10 @@ fail() {
   exit 1
 }
 
+get_printable() {
+  printf "${1}" | grep -o '[[:print:]]*'
+}
+
 partial_match_in_list() {
   printf "${1}" | grep -q "${2//[[:space:]]/\\|}"
 }
@@ -49,6 +53,7 @@ determine_host_os() {
   local ACCEPTED_VALUES='CYGWIN Darwin Linux MINGW'
 
   HOST_OS="$(uname -s)"
+  HOST_OS="$(get_printable "${HOST_OS}")"
   printf "${HOST_OS}\n"
 
   if ! partial_match_in_list "${HOST_OS}" "${ACCEPTED_VALUES}"; then
@@ -62,6 +67,7 @@ determine_host_architecture() {
   local ACCEPTED_VALUES='i386 i486 i586 i686 x86_64'
 
   HOST_ARCHITECTURE="$(uname -m)"
+  HOST_ARCHITECTURE="$(get_printable "${HOST_ARCHITECTURE}")"
   printf "${HOST_ARCHITECTURE}\n"
 
   if ! exact_match_in_list "${HOST_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
@@ -81,6 +87,7 @@ determine_host_virtualization_extensions() {
   elif (printf "${HOST_OS}" | grep -q 'CYGWIN\|MINGW'); then
     HOST_EXTENSIONS="$(powershell -c '(GWMI Win32_Processor).VirtualizationFirmwareEnabled')"
     HOST_EXTENSIONS="$(printf "${HOST_EXTENSIONS}" | tr '[:upper:]' '[:lower:]')"
+    HOST_EXTENSIONS="$(get_printable "${HOST_EXTENSIONS}")"
   fi
   printf "${HOST_EXTENSIONS}\n"
 
@@ -98,7 +105,7 @@ determine_vm_long_mode() {
   else
     VM_LONG_MODE='off'
   fi
-  printf "${VM_LONGMODE}\n"
+  printf "${VM_LONG_MODE}\n"
 
   if ! exact_match_in_list "${VM_LONG_MODE}" "${ACCEPTED_VALUES}"; then
     fail 'Unable to determine virtual machine longmode setting.'
