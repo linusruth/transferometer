@@ -61,7 +61,7 @@ determine_host_architecture() {
   printf 'Determining host architecture... '
   local ACCEPTED_VALUES='i386 i486 i586 i686 x86_64'
 
-  HOST_ARCHITECTURE="$(uname -m | grep -o '[[:print:]]')"
+  HOST_ARCHITECTURE="$(uname -m | grep -o '[[:print:]]*')"
   printf "${HOST_ARCHITECTURE}\n"
 
   if ! exact_match_in_list "${HOST_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
