@@ -12,10 +12,6 @@ fail() {
   exit 1
 }
 
-get_printable() {
-  printf "${1}" | grep -o '[[:print:]]*'
-}
-
 partial_match_in_list() {
   printf "${1}" | grep -q "${2//[[:space:]]/\\|}"
 }
@@ -52,8 +48,7 @@ determine_host_os() {
   printf 'Determining host operating system... '
   local ACCEPTED_VALUES='CYGWIN Darwin Linux MINGW'
 
-  HOST_OS="$(uname -s)"
-  HOST_OS="$(get_printable "${HOST_OS}")"
+  HOST_OS="$(uname -s | grep -o '[[:print:]]*')"
   printf "${HOST_OS}\n"
 
   if ! partial_match_in_list "${HOST_OS}" "${ACCEPTED_VALUES}"; then
@@ -66,8 +61,7 @@ determine_host_architecture() {
   printf 'Determining host architecture... '
   local ACCEPTED_VALUES='i386 i486 i586 i686 x86_64'
 
-  HOST_ARCHITECTURE="$(uname -m)"
-  HOST_ARCHITECTURE="$(get_printable "${HOST_ARCHITECTURE}")"
+  HOST_ARCHITECTURE="$(uname -m | grep -o '[[:print:]]')"
   printf "${HOST_ARCHITECTURE}\n"
 
   if ! exact_match_in_list "${HOST_ARCHITECTURE}" "${ACCEPTED_VALUES}"; then
@@ -81,13 +75,15 @@ determine_host_virtualization_extensions() {
   local ACCEPTED_VALUES='true false'
 
   if test "${HOST_OS}" = 'Linux'; then
-    HOST_EXTENSIONS="$(lscpu | grep -qw 'svm\|vmx' && printf 'true' || printf 'false')"
+    local COMMAND="lscpu | grep -qw 'svm\|vmx'"
+    HOST_EXTENSIONS="$("${COMMAND}" && printf 'true' || printf 'false')"
   elif test "${HOST_OS}" = 'Darwin'; then
-    HOST_EXTENSIONS="$(sysctl -a | grep -qw 'VMX' && printf 'true' || printf 'false')"
+    local COMMAND="sysctl -a | grep -qw 'VMX'"
+    HOST_EXTENSIONS="$("${COMMAND}" && printf 'true' || printf 'false')"
   elif (printf "${HOST_OS}" | grep -q 'CYGWIN\|MINGW'); then
-    HOST_EXTENSIONS="$(powershell -c '(GWMI Win32_Processor).VirtualizationFirmwareEnabled')"
-    HOST_EXTENSIONS="$(printf "${HOST_EXTENSIONS}" | tr '[:upper:]' '[:lower:]')"
-    HOST_EXTENSIONS="$(get_printable "${HOST_EXTENSIONS}")"
+    local COMMAND="(GWMI Win32_Processor).VirtualizationFirmwareEnabled"
+    local TEMP="$(powershell -c "${COMMAND}" | tr '[:upper:]' '[:lower:]')"
+    HOST_EXTENSIONS="$(printf "${TEMP}" | grep -o '[[:print:]]*')"
   fi
   printf "${HOST_EXTENSIONS}\n"
 
@@ -159,16 +155,22 @@ list_vbox_host_networks() {
 
 create_vbox_host_network() {
   printf 'Creating VirtualBox host-only network interface... '
-  local NETWORKS_BEFORE="$(list_vbox_host_networks)"
+  local BEFORE="$(list_vbox_host_networks)"
   VBoxManage hostonlyif create 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 
-  local NETWORKS_AFTER="$(list_vbox_host_networks)"
-  local NEW_NETWORK="$(diff <(echo "${NETWORKS_BEFORE}") <(echo "${NETWORKS_AFTER}"))"
-  HOST_NETWORK_NAME="$(printf "${NEW_NETWORK}" | grep -ow 'Name.*' | grep -ow 'vboxnet[[:print:]]*\|VirtualBox[[:print:]]*')"
-  HOST_NETWORK_IP="$(printf "${NEW_NETWORK}" | grep -ow 'IPAddress.*' | grep -ow '[1-9][[:print:]]*')"
-  HOST_NETWORK_MASK="$(printf "${NEW_NETWORK}" | grep -ow 'NetworkMask.*' | grep -ow '255[[:print:]]*')"
+  local AFTER="$(list_vbox_host_networks)"
+  local NEW_NETWORK="$(diff <(echo "${BEFORE}") <(echo "${AFTER}"))"
+
+  local TEMP1="$(printf "${NEW_NETWORK}" | grep -ow 'Name[[:print:]]*')"
+  HOST_NETWORK_NAME="$(printf "${TEMP1}" | grep -ow 'vboxnet.*\|VirtualBox.*')"
+
+  local TEMP2="$(printf "${NEW_NETWORKS}" | grep -ow 'IPAddress[[:print:]]*')"
+  HOST_NETWORK_IP="$(printf "${TEMP2}" | grep -ow '[1-9].*')"
+
+  local TEMP3="$(printf "${NEW_NETWORKS}" | grep -ow 'NetworkMask[[:print:]]*')"
+  HOST_NETWORK_MASK="$(printf "${TEMP3}" | grep -ow '255.*')"
 }
 
 last_octet() {
@@ -326,7 +328,8 @@ convert_firmware_image_to_vdi() {
   printf 'Converting firmware image to VirtualBox Disk Image (VDI)... '
   FIRMWARE_IMAGE="${FIRMWARE_PACKAGE_PATH//.gz/}"
   FIRMWARE_VDI="${FIRMWARE_IMAGE//.img/.vdi}"
-  VBoxManage convertfromraw --format VDI "${FIRMWARE_IMAGE}" "${FIRMWARE_VDI}" 1>/dev/null 2>&1
+  VBoxManage convertfromraw \
+    --format VDI "${FIRMWARE_IMAGE}" "${FIRMWARE_VDI}" 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
