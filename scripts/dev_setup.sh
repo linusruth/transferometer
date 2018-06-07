@@ -177,19 +177,19 @@ create_vbox_host_network_dhcp_server() {
   printf 'Creating VirtualBox host-only network interface DHCP server... '
 
   local HOST_NETWORK_IP_LAST_OCTET="$(last_octet "${HOST_NETWORK_IP}")"
-  local DHCP_NETWORK_LOWER_IP_LAST_OCTET="$((HOST_NETWORK_IP_LAST_OCTET + 1))"
-  local DHCP_NETWORK_UPPER_IP_LAST_OCTET="${DHCP_NETWORK_LOWER_IP_LAST_OCTET}"
+  local DHCP_LOWER_IP_LAST_OCTET="$((HOST_NETWORK_IP_LAST_OCTET + 1))"
+  local DHCP_UPPER_IP_LAST_OCTET="${DHCP_LOWER_IP_LAST_OCTET}"
   local DHCP_NETWORK_PREFIX="$(printf "${HOST_NETWORK_IP}" | grep -o '.*\.')"
-  local DHCP_NETWORK_LOWER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_LOWER_IP_LAST_OCTET}"
-  local DHCP_NETWORK_UPPER_IP="${DHCP_NETWORK_PREFIX}${DHCP_NETWORK_UPPER_IP_LAST_OCTET}"
-  VM_IP="${DHCP_NETWORK_LOWER_IP}"
+  local DHCP_LOWER_IP="${DHCP_NETWORK_PREFIX}${DHCP_LOWER_IP_LAST_OCTET}"
+  local DHCP_UPPER_IP="${DHCP_NETWORK_PREFIX}${DHCP_UPPER_IP_LAST_OCTET}"
+  VM_IP="${DHCP_LOWER_IP}"
 
   VBoxManage dhcpserver add \
     --ifname "${HOST_NETWORK_NAME}" \
     --ip "${HOST_NETWORK_IP}" \
     --netmask "${HOST_NETWORK_MASK}" \
-    --lowerip "${DHCP_NETWORK_LOWER_IP}" \
-    --upperip "${DHCP_NETWORK_UPPER_IP}" \
+    --lowerip "${DHCP_LOWER_IP}" \
+    --upperip "${DHCP_UPPER_IP}" \
     --enable 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
