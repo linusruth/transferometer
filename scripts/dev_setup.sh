@@ -75,9 +75,11 @@ determine_host_virtualization_extensions() {
   local ACCEPTED_VALUES='true false'
 
   if test "${HOST_OS}" = 'Linux'; then
-    HOST_EXTENSIONS="$(lscpu | grep -qw 'svm\|vmx' && printf 'true' || printf 'false')"
+    local TEMP="$(lscpu | grep -ow 'svm\|vmx')"
+    HOST_EXTENSIONS="$(test -n "${TEMP}" && printf 'true' || printf 'false')"
   elif test "${HOST_OS}" = 'Darwin'; then
-    HOST_EXTENSIONS="$(sysctl -a | grep -qw 'VMX' && printf 'true' || printf 'false')"
+    local TEMP="$(sysctl -a | grep -ow 'VMX')"
+    HOST_EXTENSIONS="$(test -n "${TEMP}" && printf 'true' || printf 'false')"
   elif (printf "${HOST_OS}" | grep -q 'CYGWIN\|MINGW'); then
     local COMMAND='(GWMI Win32_Processor).VirtualizationFirmwareEnabled'
     local TEMP="$(powershell -c "${COMMAND}" | tr '[:upper:]' '[:lower:]')"
