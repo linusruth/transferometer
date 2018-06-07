@@ -228,8 +228,7 @@ determine_vbox_default_machine_folder() {
   TEMP="$(printf "${TEMP}" | grep -ow '^Default machine folder:[[:print:]]*')"
   TEMP="$(printf "${TEMP}" | cut -d ':' -f 2-)"
   TEMP="$(printf "${TEMP}" | grep -ow '[[:alnum:][:punct:]].*')"
-  TEMP="$(printf "${TEMP}/" | tr -s '/')"
-  VBOX_DEFAULT_MACHINE_FOLDER="${TEMP}"
+  VBOX_DEFAULT_MACHINE_FOLDER="$(printf "${TEMP}/" | tr -s '/')"
   printf "${VBOX_DEFAULT_MACHINE_FOLDER}\n"
 
   if ! test -d "${VBOX_DEFAULT_MACHINE_FOLDER}"; then
@@ -240,8 +239,7 @@ determine_vbox_default_machine_folder() {
 determine_vm_folder() {
   printf 'Determining virtual machine folder... '
   local TEMP="${VBOX_DEFAULT_MACHINE_FOLDER}/${VM_NAME}/"
-  TEMP="$(printf "${TEMP}" | tr -s '/')"
-  VM_FOLDER="${TEMP}"
+  VM_FOLDER="$(printf "${TEMP}" | tr -s '/')"
   printf "${VM_FOLDER}\n"
 
   if ! test -d "${VM_FOLDER}"; then
