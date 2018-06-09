@@ -36,6 +36,18 @@ When Dnsmasq monitors a change in the ARP table, it calls Transferometer with pa
 * Shutdown.
 
 ## Development
+
+Run [dev_setup.sh](scripts/dev_setup.sh) to automatically create a VM containing OpenWrt 17.01.4.
+
+Requirements:
+* Linux, macOS, Cygwin (Windows), or MinGW/MSYS (Windows)
+* Bash
+* VirtualBox (installation directory must be added to PATH system variable)
+* curl or wget
+* gunzip or gzip
+
+Alternatively, you can follow the manual setup instructions below.
+
 1. Follow the [instructions](https://openwrt.org/docs/guide-user/virtualization/virtualbox-vm) provided by the OpenWrt team to install [OpenWrt/LEDE 17.01.4 x86_64](https://downloads.openwrt.org/releases/17.01.4/targets/x86/64/lede-17.01.4-x86-64-combined-ext4.img.gz) in a [VirtualBox](https://www.virtualbox.org/) VM.  (**Note: There is a flaw in the instructions.**  Please download the *ext4* image referenced above rather than the *squashfs* image it suggests.  Otherwise VBoxManage will throw an error during conversion indicating that the disk is "not aligned on a sector boundary".)
 2. Clone the Transferometer repo locally, then [use SCP to copy files](https://kb.iu.edu/d/agye) to your VM.
 3. SSH into the VM, reconfigure Dnsmasq:
