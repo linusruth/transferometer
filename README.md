@@ -50,9 +50,8 @@ Alternatively, you can follow the [instructions](https://openwrt.org/docs/guide-
 
 Once you have a working VM:
 
-1. Follow the [instructions](https://openwrt.org/docs/guide-user/virtualization/virtualbox-vm) provided by the OpenWrt team to install [OpenWrt 17.01.4](https://downloads.openwrt.org/releases/17.01.4/targets/x86/) in a [VirtualBox](https://www.virtualbox.org/) VM.
-2. Clone the Transferometer repo locally, then [use SCP to copy files](https://kb.iu.edu/d/agye) to your VM.
-3. SSH into the VM, reconfigure Dnsmasq:
+1. Clone the Transferometer repo locally, then [use SCP to copy files](https://kb.iu.edu/d/agye) to the VM.
+2. SSH into the VM, reconfigure Dnsmasq:
   * Add the following lines to */etc/dnsmasq.conf*:
 ```bash
 script-arp
