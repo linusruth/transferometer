@@ -200,7 +200,7 @@ configure_vm_properties() {
 
   VBoxManage modifyvm "${VM_NAME}" \
     --hostonlyadapter1 "${HOST_NETWORK_NAME}" \
-    --ioapic 'on' \
+    --ioapic 'off' \
     --longmode "${VM_LONG_MODE}" \
     --memory '128' \
     --nic1 'hostonly' \
