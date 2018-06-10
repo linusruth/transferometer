@@ -200,7 +200,6 @@ configure_vm_properties() {
 
   VBoxManage modifyvm "${VM_NAME}" \
     --audio 'none' \
-    --cpuexecutioncap '50' \
     --hostonlyadapter1 "${HOST_NETWORK_NAME}" \
     --ioapic 'on' \
     --longmode "${VM_LONG_MODE}" \
