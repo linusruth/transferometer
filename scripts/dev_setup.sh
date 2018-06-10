@@ -199,15 +199,14 @@ configure_vm_properties() {
   printf 'Configuring virtual machine properties... '
 
   VBoxManage modifyvm "${VM_NAME}" \
+    --audio 'none' \
     --hostonlyadapter1 "${HOST_NETWORK_NAME}" \
-    --ioapic 'off' \
+    --ioapic 'on' \
     --longmode "${VM_LONG_MODE}" \
     --memory '128' \
     --nic1 'hostonly' \
-    --nictype1 'Am79C970A' \
-    --nicpromisc1 'deny' \
     --nic2 'nat' \
-    --nictype2 'Am79C970A' \
+    --nicpromisc1 'deny' \
     --pae 'on' \
     --rtcuseutc 'on' 1>/dev/null 2>&1
 
