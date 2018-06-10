@@ -29,8 +29,8 @@ end
 function Transfer (table)
   if table.date then
     transfer[table.date] = {
-      bytes_in    = table.bytes_in,
-      bytes_out   = table.bytes_out,
+      bytes_in = table.bytes_in,
+      bytes_out = table.bytes_out,
       bytes_total = table.bytes_total
     }
   end
@@ -63,16 +63,16 @@ end
 -- (ex. INPUT) to contain rules for logging host data throughput.
 local function create_accounting_chain (built_in_chain)
   os.execute('iptables -t mangle -N TRANSFEROMETER_' .. built_in_chain ..
-             ' 1>/dev/null 2>&1')
+    ' 1>/dev/null 2>&1')
 end
 
 -- Delete an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
 -- (ex. INPUT) including any rules it may contain.
 local function delete_accounting_chain (built_in_chain)
   os.execute('iptables -t mangle -F TRANSFEROMETER_' .. built_in_chain ..
-             ' 1>/dev/null 2>&1')
+    ' 1>/dev/null 2>&1')
   os.execute('iptables -t mangle -X TRANSFEROMETER_' .. built_in_chain ..
-             ' 1>/dev/null 2>&1')
+    ' 1>/dev/null 2>&1')
 end
 
 -- Insert rule necessary to divert packets from a built-in chain
@@ -80,7 +80,7 @@ end
 -- It must be evaluated first, so it will be inserted at the head of the chain.
 local function insert_diversion_rule (built_in_chain)
   os.execute('iptables -t mangle -I ' .. built_in_chain ..
-             ' -j TRANSFEROMETER_' .. built_in_chain .. ' 1>/dev/null 2>&1')
+    ' -j TRANSFEROMETER_' .. built_in_chain .. ' 1>/dev/null 2>&1')
 end
 
 -- Delete rule necessary to divert packets from a built-in chain
@@ -88,7 +88,7 @@ end
 -- including any duplicates of the rule which may exist.
 local function delete_diversion_rule (built_in_chain)
   local command = 'iptables -t mangle -D ' .. built_in_chain ..
-                  ' -j TRANSFEROMETER_' .. built_in_chain .. ' 2>&1'
+    ' -j TRANSFEROMETER_' .. built_in_chain .. ' 2>&1'
   repeat until string.match(command_result(command), "%S+")
 end
 
@@ -99,7 +99,7 @@ end
 -- and a new diversion rule will be inserted at the head of the built-in chain.
 local function maintain_diversion_rule (built_in_chain)
   local command = 'iptables -t mangle -n --line-numbers -L ' ..
-                  built_in_chain .. ' 2>&1'
+    built_in_chain .. ' 2>&1'
   local output = command_result(command)
   local accounting_chain = 'TRANSFEROMETER_' .. built_in_chain
 
@@ -127,20 +127,26 @@ end
 
 local function insert_interface_rule (built_in_chain)
   if built_in_chain = 'OUTPUT' then
-    os.execute('iptables -t mangle -o $IF -j RETURN -C RRDIPT_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -o $IF -j RETURN ..'
+      '-C RRDIPT_$chain 2>/dev/null')
     os.execute('iptables -t mangle -o $IF -j RETURN -A RRDIPT_$chain')
   elseif built_in_chain = 'INPUT' then
-    os.execute('iptables -t mangle -i $IF -j RETURN -C RRDIPT_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -i $IF -j RETURN ..'
+      '-C RRDIPT_$chain 2>/dev/null')
     os.execute('iptables -t mangle -i $IF -j RETURN -A RRDIPT_$chain')
   end
 end
 
 local function insert_device_rule (built_in_chain)
   if built_in_chain = 'FORWARD' then
-    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip .. ' -C RRDIPT_FORWARD 2>/dev/null')
-    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip .. ' -A RRDIPT_FORWARD')
-    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip .. ' -C RRDIPT_FORWARD 2>/dev/null')
-    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip .. ' -A RRDIPT_FORWARD')
+    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
+      ' -C RRDIPT_FORWARD 2>/dev/null')
+    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
+      ' -A RRDIPT_FORWARD')
+    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
+      ' -C RRDIPT_FORWARD 2>/dev/null')
+    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
+      ' -A RRDIPT_FORWARD')
   end
 end
 
