@@ -204,8 +204,10 @@ configure_vm_properties() {
     --longmode "${VM_LONG_MODE}" \
     --memory '128' \
     --nic1 'hostonly' \
-    --nic2 'nat' \
+    --nictype1 'Am79C970A' \
     --nicpromisc1 'deny' \
+    --nic2 'nat' \
+    --nictype2 'Am79C970A' \
     --pae 'on' \
     --rtcuseutc 'on' 1>/dev/null 2>&1
 
@@ -219,7 +221,8 @@ create_vm_storage_controller() {
     --name "${STORAGECTL_NAME}" \
     --add 'sata' \
     --controller 'IntelAhci' \
-    --portcount '1' 1>/dev/null 2>&1
+    --portcount '1' \
+    --hostiocache 'on' 1>/dev/null 2>&1
 
   (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
