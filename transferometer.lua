@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
--- Copyright (C) 2018 Linus Ruth
+-- Copyright (C) 2019 Linus Ruth
 --
 -- This is free software, licensed under the Apache License, Version 2.0.
 

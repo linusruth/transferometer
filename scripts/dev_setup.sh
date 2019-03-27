@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2018 Linus Ruth
+# Copyright (C) 2019 Linus Ruth
 #
 # This is free software, licensed under the Apache License, Version 2.0.
 
-OPENWRT_VERSION='17.01.4'
+OPENWRT_VERSION='17.01.6'
 OPENWRT_MIRROR='downloads.openwrt.org'
 
 fail() {
@@ -317,7 +317,7 @@ extract_firmware_image() {
     gzip -d "${FIRMWARE_PACKAGE_PATH}"
   fi
 
-  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1) 
+  (test -n "${?}" && printf 'done\n') || (printf 'error\n' && exit 1)
 }
 
 convert_firmware_image_to_vdi() {
@@ -394,4 +394,3 @@ main() {
 }
 
 main
-

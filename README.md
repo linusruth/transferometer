@@ -37,7 +37,7 @@ When Dnsmasq monitors a change in the ARP table, it calls Transferometer with pa
 
 ## Development
 
-Clone the Transferometer repo, then run [dev_setup.sh](scripts/dev_setup.sh) to create a VM containing [OpenWrt 17.01.4](https://downloads.openwrt.org/releases/17.01.4/targets/x86/).
+Clone the Transferometer repo, then run [dev_setup.sh](scripts/dev_setup.sh) to create a VM containing [OpenWrt 17.01.6](https://downloads.openwrt.org/releases/17.01.6/targets/x86/).
 
 Requirements:
 * Linux, macOS, [Cygwin](https://www.cygwin.com/) (Windows), or [MinGW/MSYS](http://mingw.org/) (Windows)
