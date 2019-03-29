@@ -18,22 +18,30 @@ When Dnsmasq monitors a change in the ARP table, it calls Transferometer with pa
 * Create a PID file '/var/run/transferometer.pid' containing the PID (Process ID) of present Lua interpreter session.
   * To obtain the PID, open /proc/self/stat and read the first block of text, an integer value.
   * Be sure to open /proc/self/stat natively within Lua.  Reading it with 'cat' or another tool will yield the wrong PID.
-* Create iptables accounting chains for built-in chains 'INPUT', 'OUTPUT', and 'FORWARD'.
-* Create iptables rules to divert packets from built-in chains 'INPUT', 'OUTPUT', and 'FORWARD' to corresponding accouting chains.
+* Create iptables accounting chains, in the mangle table, for built-in chains 'INPUT', 'OUTPUT', and 'FORWARD'.
+* Create iptables rules, in the mangle table, to divert packets from built-in chains 'INPUT', 'OUTPUT', and 'FORWARD' to corresponding accounting chains.
 * Read host byte counts and zero counters as a single iptables operation.  Update transfer.db.
 * Read command line parameter #1 to determine action.  (Subsequent parameters vary depending on content of parameter #1.)
   * If 'arp-add', then:
-    * Check for existing iptables rules in the 'FORWARD' chain matching IP address specified in parameter #3.
+    * Check for existing iptables rules in the 'FORWARD' chain, in the mangle table, matching IP address specified in parameter #3.
     * If rules exist, do nothing.
     * If rules are missing, add them.
     * Add or update entry in host.db.  (IP address = parameter #3, MAC address = parameter #2.)
   * If 'arp-del', then:
-    * Delete iptables rules from the 'FORWARD' chain matching IP address specified in parameter #3.
+    * Delete iptables rules from the 'FORWARD' chain, in the mangle table, matching IP address specified in parameter #3.
     * Delete entry from host.db.
   * If any other value is passed as parameter #1, do nothing.
 * Delete the PID file '/var/run/transferometer.pid'.
 * Delete the lock directory '/tmp/~transferometer'.
 * Shutdown.
+
+## Listing iptables Configuration
+
+By default, iptables commands target the *filter* table.  However, Transferometer exclusively uses the *mangle* table.  To list the mangle table in its entirety:
+
+```bash
+iptables -t mangle -L
+```
 
 ## Development
 
@@ -64,7 +72,7 @@ dhcp-script=/usr/sbin/transferometer
 
 ## Contributing
 1. Fork the repository.
-2. Create a feature branch with a meaninful name.
+2. Create a feature branch with a meaningful name.
 3. Commit your changes.
 4. Update the test suite.
 5. Update documentation.
