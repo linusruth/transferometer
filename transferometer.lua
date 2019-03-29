@@ -59,6 +59,28 @@ local function command_result_array (command)
   return result
 end
 
+-- Only one instance of Transferometer should ever be running at any given time.
+-- Since the 'mkdir' command is atomic and ubiquitous, a lock directory is used
+-- to prevent multiple instances of Transferometer from running simultaneously.
+-- The following two functions manage the lock directory.
+local function create_lock_directory (lock_directory_path)
+  command = 'mkdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+  exit_code = command_result(command)
+  if exit_code ~= '0' then
+    print('Error creating lock directory: ' .. lock_directory_path)
+    os.exit(1)
+  end
+end
+
+local function delete_lock_directory (lock_directory_path)
+  command = 'rmdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+  exit_code = command_result(command)
+  if exit_code ~= '0' then
+    print('Error deleting lock directory: ' .. lock_directory_path)
+    os.exit(1)
+  end
+end
+
 -- Create an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
 -- (ex. INPUT) to contain rules for logging host data throughput.
 local function create_accounting_chain (built_in_chain)
@@ -116,7 +138,7 @@ end
 
 -- Processes on the router itself (ping, etc.) send packets
 -- via the WAN interface.  The following three functions
--- will return information on the WAN interface.
+-- return information on the WAN interface.
 local function wan_interface_name ()
   local command = 'uci get network.wan.ifname'
   local output = command_result(command)
