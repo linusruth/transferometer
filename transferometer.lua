@@ -226,6 +226,7 @@ local function demo ()
 end
 
 local function test ()
+  create_lock_directory('/tmp/~transferometer')
   create_accounting_chain('INPUT')
   insert_diversion_rule('INPUT')
   insert_diversion_rule('INPUT')
@@ -235,6 +236,7 @@ local function test ()
   maintain_diversion_rule('INPUT')
   delete_diversion_rule('INPUT')
   delete_accounting_chain('INPUT')
+  delete_lock_directory('/tmp/~transferometer')
 end
 
 test()
