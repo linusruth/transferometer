@@ -139,27 +139,29 @@ local function wan_interface_ip_address ()
   return output
 end
 
-local function insert_interface_rule (built_in_chain)
+local function insert_interface_rule (built_in_chain, interface_name)
   if built_in_chain == 'OUTPUT' then
-    os.execute('iptables -t mangle -o $IF -j RETURN ' ..
-      '-C TRANSFEROMETER_$chain 2>/dev/null')
-    os.execute('iptables -t mangle -o $IF -j RETURN -A TRANSFEROMETER_$chain')
+    os.execute('iptables -t mangle -o ' .. interface_name ..
+      ' -j RETURN -C TRANSFEROMETER_OUTPUT 2>/dev/null')
+    os.execute('iptables -t mangle -o ' .. interface_name ..
+      ' -j RETURN -A TRANSFEROMETER_OUTPUT')
   elseif built_in_chain == 'INPUT' then
-    os.execute('iptables -t mangle -i $IF -j RETURN ' ..
-      '-C TRANSFEROMETER_$chain 2>/dev/null')
-    os.execute('iptables -t mangle -i $IF -j RETURN -A TRANSFEROMETER_$chain')
+    os.execute('iptables -t mangle -i ' .. interface_name ..
+      ' -j RETURN -C TRANSFEROMETER_INPUT 2>/dev/null')
+    os.execute('iptables -t mangle -i ' .. interface_name ..
+      ' -j RETURN -A TRANSFEROMETER_INPUT')
   end
 end
 
-local function insert_device_rule (built_in_chain)
+local function insert_host_rule (built_in_chain, host_ip)
   if built_in_chain == 'FORWARD' then
-    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
+    os.execute('iptables -t mangle -j RETURN -s ' .. host_ip ..
       ' -C TRANSFEROMETER_FORWARD 2>/dev/null')
-    os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
+    os.execute('iptables -t mangle -j RETURN -s ' .. host_ip ..
       ' -A TRANSFEROMETER_FORWARD')
-    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
+    os.execute('iptables -t mangle -j RETURN -d ' .. host_ip ..
       ' -C TRANSFEROMETER_FORWARD 2>/dev/null')
-    os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
+    os.execute('iptables -t mangle -j RETURN -d ' .. host_ip ..
       ' -A TRANSFEROMETER_FORWARD')
   end
 end
