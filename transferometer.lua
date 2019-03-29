@@ -142,25 +142,25 @@ end
 local function insert_interface_rule (built_in_chain)
   if built_in_chain == 'OUTPUT' then
     os.execute('iptables -t mangle -o $IF -j RETURN ' ..
-      '-C RRDIPT_$chain 2>/dev/null')
-    os.execute('iptables -t mangle -o $IF -j RETURN -A RRDIPT_$chain')
+      '-C TRANSFEROMETER_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -o $IF -j RETURN -A TRANSFEROMETER_$chain')
   elseif built_in_chain == 'INPUT' then
     os.execute('iptables -t mangle -i $IF -j RETURN ' ..
-      '-C RRDIPT_$chain 2>/dev/null')
-    os.execute('iptables -t mangle -i $IF -j RETURN -A RRDIPT_$chain')
+      '-C TRANSFEROMETER_$chain 2>/dev/null')
+    os.execute('iptables -t mangle -i $IF -j RETURN -A TRANSFEROMETER_$chain')
   end
 end
 
 local function insert_device_rule (built_in_chain)
   if built_in_chain == 'FORWARD' then
     os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
-      ' -C RRDIPT_FORWARD 2>/dev/null')
+      ' -C TRANSFEROMETER_FORWARD 2>/dev/null')
     os.execute('iptables -t mangle -j RETURN -s ' .. arp_ip ..
-      ' -A RRDIPT_FORWARD')
+      ' -A TRANSFEROMETER_FORWARD')
     os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
-      ' -C RRDIPT_FORWARD 2>/dev/null')
+      ' -C TRANSFEROMETER_FORWARD 2>/dev/null')
     os.execute('iptables -t mangle -j RETURN -d ' .. arp_ip ..
-      ' -A RRDIPT_FORWARD')
+      ' -A TRANSFEROMETER_FORWARD')
   end
 end
 
