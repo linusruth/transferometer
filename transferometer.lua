@@ -115,15 +115,29 @@ local function maintain_diversion_rule (built_in_chain)
 end
 
 -- Processes on the router itself (ping, etc.) send packets
--- via the WAN interface.
+-- via the WAN interface.  The following three functions
+-- will return information on the WAN interface.
+local function wan_interface_name ()
+  local command = 'uci get network.wan.ifname'
+  local output = command_result(command)
+  output = output:gsub('[%c%s]', '')
+  return output
+end
 
--- This will use UCI to read the IP address assigned
--- to the interface named 'wan', as defined in /etc/config/network.
--- uci get network.wan.ifname
+local function wan_interface_mac_address ()
+  local command = 'cat /sys/class/net/' .. wan_interface_name() .. '/address'
+  local output = command_result(command)
+  output = output:gsub('[%c%s]', '')
+  return output
+end
 
--- Assuming the physical interface associated with 'wan' is 'eth1',
--- this will return its MAC address:
--- cat /sys/class/net/eth1/address
+local function wan_interface_ip_address ()
+  local command = 'ip -4 address show ' .. wan_interface_name() ..
+    ' | grep -o inet[^/]* | cut -d \' \' -f 2'
+  local output = command_result(command)
+  output = output:gsub('[%c%s]', '')
+  return output
+end
 
 local function insert_interface_rule (built_in_chain)
   if built_in_chain == 'OUTPUT' then
