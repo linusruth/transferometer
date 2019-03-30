@@ -245,6 +245,21 @@ local function demo ()
   end
 end
 
+local function main ()
+  local action = arg[1]
+  local mac_address = arg[2]
+  local ip_address = arg[3]
+  local hostname = arg[4]
+
+  if action == 'arp-add' then
+    print('Do something.')
+    os.exit()
+  elseif action == 'arp-del' then
+    print('Do something.')
+    os.exit()
+  end
+end
+
 local function test ()
   create_lock_directory('/tmp/~transferometer')
   create_pid_file('/var/run/transferometer.pid')
