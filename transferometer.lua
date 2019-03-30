@@ -81,6 +81,16 @@ local function delete_lock_directory (lock_directory_path)
   end
 end
 
+-- Return the Process ID (PID) of current Lua interpreter session.
+local function pid ()
+  file = io.open('/proc/self/stat', 'r')
+  io.input(file)
+  text = io.read()
+  io.close(file)
+  pid = string.match(text, "%d+")
+  return pid
+end
+
 -- Create an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
 -- (ex. INPUT) to contain rules for logging host data throughput.
 local function create_accounting_chain (built_in_chain)
