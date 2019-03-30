@@ -90,6 +90,17 @@ local function pid ()
   return pid
 end
 
+-- The following two functions manage the PID file.
+local function create_pid_file (path)
+  local file = assert(io.open(path, 'w+'))
+  file:write(pid() .. '\n')
+  file:close()
+end
+
+local function delete_pid_file (path)
+  os.remove(path)
+end
+
 -- Create an accounting chain (ex. TRANSFEROMETER_INPUT) for a built-in chain
 -- (ex. INPUT) to contain rules for logging host data throughput.
 local function create_accounting_chain (built_in_chain)
@@ -236,6 +247,7 @@ end
 
 local function test ()
   create_lock_directory('/tmp/~transferometer')
+  create_pid_file('/var/run/transferometer.pid')
   create_accounting_chain('INPUT')
   insert_diversion_rule('INPUT')
   insert_diversion_rule('INPUT')
@@ -245,6 +257,7 @@ local function test ()
   maintain_diversion_rule('INPUT')
   delete_diversion_rule('INPUT')
   delete_accounting_chain('INPUT')
+  delete_pid_file('/var/run/transferometer.pid')
   delete_lock_directory('/tmp/~transferometer')
 end
 
