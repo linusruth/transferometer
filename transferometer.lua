@@ -64,8 +64,8 @@ end
 -- to prevent multiple instances of Transferometer from running simultaneously.
 -- The following two functions manage the lock directory.
 local function create_lock_directory (lock_directory_path)
-  command = 'mkdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
-  exit_code = command_result(command)
+  local command = 'mkdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+  local exit_code = command_result(command)
   if exit_code ~= '0' then
     print('Error creating lock directory: ' .. lock_directory_path)
     os.exit(1)
@@ -73,8 +73,8 @@ local function create_lock_directory (lock_directory_path)
 end
 
 local function delete_lock_directory (lock_directory_path)
-  command = 'rmdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
-  exit_code = command_result(command)
+  local command = 'rmdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+  local exit_code = command_result(command)
   if exit_code ~= '0' then
     print('Error deleting lock directory: ' .. lock_directory_path)
     os.exit(1)
@@ -83,11 +83,10 @@ end
 
 -- Return the Process ID (PID) of current Lua interpreter session.
 local function pid ()
-  file = io.open('/proc/self/stat', 'r')
-  io.input(file)
-  text = io.read()
-  io.close(file)
-  pid = string.match(text, "%d+")
+  local file = assert(io.open('/proc/self/stat', 'r'))
+  local text = file:read('*a')
+  file:close()
+  local pid = string.match(text, "%d+")
   return pid
 end
 
