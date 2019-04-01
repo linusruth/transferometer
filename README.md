@@ -35,6 +35,8 @@ When Dnsmasq monitors a change in the ARP table, it calls Transferometer with pa
 * Delete the lock directory '/tmp/~transferometer'.
 * Shutdown.
 
+Note: According to the [Dnsmasq manual](http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html), the 'dhcp-script' function only ever invokes one instance of the named script at a time.  When simultaneous events occur, they are placed in a queue and each is resolved independently in due course.  Thus, Dnsmasq will never invoke more than one instance of Transferometer at a time, and simultaneous events will not be lost.
+
 ## Listing iptables Configuration
 
 By default, iptables commands target the *filter* table.  However, Transferometer exclusively uses the *mangle* table.  To list the mangle table in its entirety:
