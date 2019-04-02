@@ -10,6 +10,15 @@ Note: This software depends on the *script-arp* feature of [Dnsmasq 2.76](http:/
 ## Usage
 To be determined.  (Transferometer is a work in progress.)
 
+## Background
+After using [wrtbwmon](https://github.com/pyrovski/wrtbwmon) for a while, I found that there were certain aspects of it that I wanted to improve.  However, its complexity was such that I had a hard time doing so.  I spent many hours dissecting it and reading various manual pages in order to fully grasp how it operated.
+
+Transferometer was developed as a more comprehensible alternative to wrtbwmon.  It operates in the same general way as wrtbwmon, leveraging the iptables "mangle" table to track packets.  However, it has two significant implementation differences:
+1. It is written entirely in Lua, the preferred language of the OpenWrt community.
+2. It uses an event driven model for updating the list of hosts to monitor.
+
+Eventually I hope to distribute it as an OpenWrt package, and integrate it into LuCI.
+
 ## Internal Processes
 When Dnsmasq monitors a change in the ARP table, it calls Transferometer with parameters indicating the substance of the change:
 
