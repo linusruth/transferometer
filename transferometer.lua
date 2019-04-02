@@ -81,7 +81,8 @@ local function delete_lock_directory (lock_directory_path)
   end
 end
 
--- Return the Process ID (PID) of current Lua interpreter session.
+-- Return the Process ID (PID) of current Lua interpreter session.  It will be
+-- the first PID listed in '/proc/self/stat', when opened natively by Lua.
 local function pid ()
   local file = assert(io.open('/proc/self/stat', 'r'))
   local text = file:read('*a')
@@ -246,18 +247,30 @@ local function demo ()
 end
 
 local function main ()
+  create_lock_directory('/tmp/~transferometer')
+  create_pid_file('/var/run/transferometer.pid')
+
   local action = arg[1]
   local mac_address = arg[2]
   local ip_address = arg[3]
   local hostname = arg[4]
 
   if action == 'arp-add' then
-    print('Do something.')
-    os.exit()
+    print('Adding IP to accounting chains...')
   elseif action == 'arp-del' then
-    print('Do something.')
-    os.exit()
+    print('Deleting IP from accounting chains...')
+  elseif action == 'setup' then
+    print('Setting up Transferometer...')
+    create_accounting_chain('INPUT')
+    create_accounting_chain('OUTPUT')
+    create_accounting_chain('FORWARD')
+    maintain_diversion_rule('INPUT')
+    maintain_diversion_rule('OUTPUT')
+    maintain_diversion_rule('FORWARD')
   end
+
+  delete_pid_file('/var/run/transferometer.pid')
+  delete_lock_directory('/tmp/~transferometer')
 end
 
 local function test ()
