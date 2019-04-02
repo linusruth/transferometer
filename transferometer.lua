@@ -59,24 +59,89 @@ local function command_result_array (command)
   return result
 end
 
+-- Read DB (any type) from a file.
+local function read_db (path)
+  if file_exists(path) then
+    dofile(path)
+  else
+    print 'File not found!'
+    os.exit()
+  end
+end
+
+-- Write Host DB to a file.
+local function write_db_host (path)
+  local file = io.open(path, 'w+')
+
+  for k, v in pairs(host) do
+    file:write('Host {\n')
+    file:write('  ip = \'' .. k .. '\',\n')
+    file:write('  mac = \'' .. v.mac .. '\',\n')
+    file:write('}\n\n')
+  end
+end
+
+-- Write Label DB to a file.
+local function write_db_label (path)
+  local file = io.open(path, 'w+')
+
+  for k, v in pairs(label) do
+    file:write('Label {\n')
+    file:write('  mac = \'' .. k .. '\',\n')
+    file:write('  name = \'' .. v.name .. '\',\n')
+    file:write('  tags = {\n')
+    for k, v in pairs (v.tags) do
+      file:write('    [\'' .. k .. '\'] = true,\n')
+    end
+    file:write('  },\n')
+    file:write('}\n\n')
+  end
+end
+
+-- Write Transfer DB to a file.
+local function write_db_transfer (path)
+  local file = io.open(path, 'w+')
+
+  for k, v in pairs(transfer) do
+    file:write('Transfer {\n')
+    file:write('  date = ' .. k .. ',\n')
+    file:write('  bytes_in = {\n')
+    for k, v in pairs (v.bytes_in) do
+      file:write('    [\'' .. k .. '\'] = ' .. v .. ',\n')
+    end
+    file:write('  },\n')
+    file:write('  bytes_out = {\n')
+    for k, v in pairs (v.bytes_out) do
+      file:write('    [\'' .. k .. '\'] = ' .. v .. ',\n')
+    end
+    file:write('  },\n')
+    file:write('  bytes_total = {\n')
+    for k, v in pairs (v.bytes_total) do
+      file:write('    [\'' .. k .. '\'] = ' .. v .. ',\n')
+    end
+    file:write('  },\n')
+    file:write('}\n\n')
+  end
+end
+
 -- Only one instance of Transferometer should ever be running at any given time.
 -- Since the 'mkdir' command is atomic and ubiquitous, a lock directory is used
 -- to prevent multiple instances of Transferometer from running simultaneously.
 -- The following two functions manage the lock directory.
-local function create_lock_directory (lock_directory_path)
-  local command = 'mkdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+local function create_lock_directory (path)
+  local command = 'mkdir ' .. path .. ' 2>/dev/null; printf $?'
   local exit_code = command_result(command)
   if exit_code ~= '0' then
-    print('Error creating lock directory: ' .. lock_directory_path)
+    print('Error creating lock directory: ' .. path)
     os.exit(1)
   end
 end
 
-local function delete_lock_directory (lock_directory_path)
-  local command = 'rmdir ' .. lock_directory_path .. ' 2>/dev/null; printf $?'
+local function delete_lock_directory (path)
+  local command = 'rmdir ' .. path .. ' 2>/dev/null; printf $?'
   local exit_code = command_result(command)
   if exit_code ~= '0' then
-    print('Error deleting lock directory: ' .. lock_directory_path)
+    print('Error deleting lock directory: ' .. path)
     os.exit(1)
   end
 end

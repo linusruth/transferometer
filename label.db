@@ -4,7 +4,7 @@ Label {
   tags = {
     ['ari'] = true,
     ['wired'] = true
-  }
+  },
 }
 
 Label {
@@ -13,7 +13,7 @@ Label {
   tags = {
     ['sonja'] = true,
     ['wired'] = true
-  }
+  },
 }
 
 Label {
@@ -22,5 +22,5 @@ Label {
   tags = {
     ['shakir'] = true,
     ['wireless'] = true
-  }
+  },
 }
