@@ -275,34 +275,35 @@ local function insert_host_rule (built_in_chain, host_ip)
 end
 
 local function demo ()
-  print 'Host DB:'
-  local host_db = io.read()
-  if file_exists(host_db) then
-    dofile(host_db)
-  else
-    print 'File not found!'
-    os.exit()
+  read_db('host.db')
+  read_db('label.db')
+  read_db('transfer.db')
+
+  print('Host DB:')
+  for k, v in pairs(host) do
+    print('\tIP: ' .. k .. '\tMAC: ' .. v.mac)
   end
 
-
-  print 'Label DB:'
-  local label_db = io.read()
-  if file_exists(label_db) then
-    dofile(label_db)
-  else
-    print 'File not found!'
-    os.exit()
+  print('Label DB:')
+  for k, v in pairs(label) do
+    print('\tMAC: ' .. k .. '\tName: ' .. v.name)
   end
 
-  print 'Transfer DB:'
-  local transfer_db = io.read()
-  if file_exists(transfer_db) then
-    dofile(transfer_db)
-  else
-    print 'File not found!'
-    os.exit()
+  print('Transfer DB:')
+  for k, v in pairs(transfer) do
+    print('\tDate: ' .. k)
+    for k, v in pairs (v.bytes_in) do
+      print('\t\tMAC: ' .. k .. '\tBytes In:    ' .. v)
+    end
+    for k, v in pairs (v.bytes_out) do
+      print('\t\tMAC: ' .. k .. '\tBytes Out:   ' .. v)
+    end
+    for k, v in pairs (v.bytes_total) do
+      print('\t\tMAC: ' .. k .. '\tBytes Total: ' .. v)
+    end
   end
 
+  print('Cross Reference:')
   for k, v in pairs(transfer) do
     print('Date: ' .. k)
     for k, v in pairs(v.bytes_total) do
