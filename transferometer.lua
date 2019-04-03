@@ -274,6 +274,17 @@ local function insert_host_rule (built_in_chain, host_ip)
   end
 end
 
+-- Reads and zeros the values of the host counters in a single operation, then
+-- returns those values.
+local function read_counters (built_in_chain)
+  if built_in_chain == 'FORWARD' then
+    local command = 'iptables -t mangle -nvxL TRANSFEROMETER_' ..
+      built_in_chain .. ' -Z  2>&1'
+    local output = command_result(command)
+    return output
+  end
+end
+
 local function demo ()
   read_db('host.db')
   read_db('label.db')
