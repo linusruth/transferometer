@@ -279,35 +279,46 @@ local function demo ()
   read_db('label.db')
   read_db('transfer.db')
 
+  print('********')
   print('Host DB:')
+  print('********')
   for k, v in pairs(host) do
-    print('\tIP: ' .. k .. '\tMAC: ' .. v.mac)
+    print('IP: ' .. k .. '\tMAC: ' .. v.mac)
   end
+  print('\n')
 
+  print('*********')
   print('Label DB:')
+  print('*********')
   for k, v in pairs(label) do
-    print('\tMAC: ' .. k .. '\tName: ' .. v.name)
+    print('MAC: ' .. k .. '\tName: ' .. v.name)
   end
+  print('\n')
 
+  print('************')
   print('Transfer DB:')
+  print('************')
   for k, v in pairs(transfer) do
-    print('\tDate: ' .. k)
+    print('Date: ' .. k)
     for k, v in pairs (v.bytes_in) do
-      print('\t\tMAC: ' .. k .. '\tBytes In:    ' .. v)
+      print('\tMAC: ' .. k .. '\tBytes In:    ' .. v)
     end
     for k, v in pairs (v.bytes_out) do
-      print('\t\tMAC: ' .. k .. '\tBytes Out:   ' .. v)
+      print('\tMAC: ' .. k .. '\tBytes Out:   ' .. v)
     end
     for k, v in pairs (v.bytes_total) do
-      print('\t\tMAC: ' .. k .. '\tBytes Total: ' .. v)
+      print('\tMAC: ' .. k .. '\tBytes Total: ' .. v)
     end
   end
+  print('\n')
 
+  print('****************')
   print('Cross Reference:')
+  print('****************')
   for k, v in pairs(transfer) do
     print('Date: ' .. k)
     for k, v in pairs(v.bytes_total) do
-      print('\tMAC: ' .. k, 'Name: ' .. label[k].name, '\tBytes Total: ' .. v)
+      print('\tMAC: ' .. k .. '\tName: ' .. label[k].name .. '\tBytes Total: ' .. v)
     end
   end
 end

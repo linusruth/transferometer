@@ -3,16 +3,16 @@ Label {
   name = 'Server-02',
   tags = {
     ['ari'] = true,
-    ['wired'] = true
+    ['wired'] = true,
   },
 }
 
 Label {
   mac = '37:11:11:23:f1:2b',
-  name = 'CAD Workstation',
+  name = 'CAD Lab 1',
   tags = {
     ['sonja'] = true,
-    ['wired'] = true
+    ['wired'] = true,
   },
 }
 
@@ -21,6 +21,6 @@ Label {
   name = 'Laptop',
   tags = {
     ['shakir'] = true,
-    ['wireless'] = true
+    ['wireless'] = true,
   },
 }
